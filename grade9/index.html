@@ -293,7 +293,6 @@
         function checkPass() {
             const input = document.getElementById('passwordInput').value;
             if(input === PASSWORD) {
-                localStorage.setItem('math_access_grade9', 'true');
                 showContent();
             } else {
                 const err = document.getElementById('errorMsg');
