@@ -1,0 +1,779 @@
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Video, Menu, X, Check, Brain, Calculator, Smartphone, Send, Users, Sparkles, Monitor, Download, Heart, Zap, Play, MessageCircle, Target, ChevronLeft, ArrowDown, Star, Phone, TrendingUp, Clock } from 'lucide-react';
+
+
+const App = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('home');
+
+
+  const navigateTo = (view) => {
+    setCurrentView(view);
+    setIsMenuOpen(false);
+    window.scrollTo(0, 0);
+  };
+
+
+  const myPhone = "972536200289";
+ 
+  const links = {
+    whatsappGeneral: `https://wa.me/${myPhone}?text=היי, אשמח לברר פרטים לגבי השיעורים הפרטיים`,
+    whatsappLesson: `https://wa.me/${myPhone}?text=היי, אשמח לברר פרטים לגבי השיעורים הפרטיים`, // Same as general for now based on request context, or can be specific
+    whatsappGrade8: `https://wa.me/${myPhone}?text=היי, אשמח לרכוש את ערכת ההכנה לכיתה ח'`,
+    whatsappGrade9: `https://wa.me/${myPhone}?text=היי, אשמח לרכוש את ערכת ההכנה לכיתה ט'`,
+    freeSample: "#",
+  };
+
+
+  return (
+    <div dir="rtl" className="font-sans text-slate-800 bg-slate-50 min-h-screen selection:bg-cyan-200">
+     
+      {/* --- Navigation Bar --- */}
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigateTo('home')}>
+            <div className="bg-gradient-to-br from-blue-600 to-cyan-400 text-white p-2 rounded-lg shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
+              <Brain size={24} />
+            </div>
+            <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-cyan-500">
+              אלוגברה
+            </span>
+          </div>
+
+
+          <div className="hidden md:flex items-center gap-8 font-medium text-slate-600">
+            <button onClick={() => navigateTo('home')} className={`hover:text-blue-600 transition ${currentView === 'home' ? 'text-blue-600 font-bold' : ''}`}>דף הבית</button>
+            <button onClick={() => navigateTo('lessons')} className={`hover:text-blue-600 transition ${currentView === 'lessons' ? 'text-blue-600 font-bold' : ''}`}>שיעורים פרטיים</button>
+            <button onClick={() => navigateTo('store')} className={`hover:text-blue-600 transition ${currentView === 'store' ? 'text-blue-600 font-bold' : ''}`}>סיכומים ותרגול</button>
+            <a href={links.whatsappGeneral} target="_blank" rel="noreferrer" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5 font-medium flex items-center gap-2">
+              <Send size={16} />
+              צור קשר
+            </a>
+          </div>
+
+
+          <button className="md:hidden text-slate-600 hover:text-blue-600 transition" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
+
+
+        {isMenuOpen && (
+          <div className="md:hidden bg-white border-t border-slate-100 p-4 flex flex-col gap-2 shadow-xl animate-in slide-in-from-top-2">
+            <button onClick={() => navigateTo('home')} className="text-right text-slate-600 p-3 hover:bg-slate-50 rounded-lg font-medium">דף הבית</button>
+            <button onClick={() => navigateTo('lessons')} className="text-right text-slate-600 p-3 hover:bg-slate-50 rounded-lg font-medium">שיעורים פרטיים</button>
+            <button onClick={() => navigateTo('store')} className="text-right text-slate-600 p-3 hover:bg-slate-50 rounded-lg font-medium">סיכומים ותרגול</button>
+            <a href={links.whatsappGeneral} className="text-right text-blue-600 font-bold p-3 hover:bg-blue-50 rounded-lg flex items-center gap-2">
+                <Send size={16} />
+                צור קשר בוואטסאפ
+            </a>
+          </div>
+        )}
+      </nav>
+
+
+      <main>
+        {currentView === 'home' && <HomeView navigateTo={navigateTo} links={links} />}
+        {currentView === 'lessons' && <LessonsView links={links} />}
+        {currentView === 'store' && <StoreView links={links} />}
+      </main>
+
+
+      <footer className="bg-slate-900 text-slate-400 py-12 mt-auto border-t border-slate-800">
+        <div className="container mx-auto px-6 text-center">
+          <div className="flex items-center justify-center gap-2 mb-6 text-white font-bold text-2xl">
+            <Brain size={24} className="text-blue-400" />
+            אלוגברה
+          </div>
+          <p className="mb-8 max-w-md mx-auto text-slate-300">
+            הבית של תלמידי המתמטיקה בישראל. לומדים חכם, מבינים מהר, ומצליחים בגדול.
+          </p>
+          <div className="text-sm border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-center items-center gap-4">
+            <span>© 2025 כל הזכויות שמורות לאלוגברה.</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+
+const HomeView = ({ navigateTo, links }) => {
+    // Carousel State
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(true);
+
+
+    const slides = [
+        { id: 1, quote: "השיטה שעזרה לי לעבור את הבגרות!", author: "נועה, כיתה י״ב" },
+        { id: 2, quote: "פתאום מתמטיקה זה לא סינית...", author: "עמית, כיתה ט׳" },
+        { id: 3, quote: "הסימולטורים פשוט גאוניים", author: "דניאל, כיתה י״א" }
+    ];
+
+
+    useEffect(() => {
+        let interval;
+        if (isPlaying) {
+            interval = setInterval(() => {
+                setCurrentSlide((prev) => {
+                    if (prev < slides.length - 1) {
+                        return prev + 1;
+                    } else {
+                        setIsPlaying(false); // Stop after finishing
+                        return prev;
+                    }
+                });
+            }, 6000); // 6 Seconds per slide
+        }
+        return () => clearInterval(interval);
+    }, [isPlaying, slides.length]);
+
+
+    const restartCarousel = () => {
+        setCurrentSlide(0);
+        setIsPlaying(true);
+    };
+
+
+    return (
+  <>
+    {/* Hero Section */}
+    <header className="relative pt-20 pb-32 overflow-hidden bg-slate-900 text-white">
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+        <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/30 rounded-full blur-[100px] animate-pulse"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-cyan-500/20 rounded-full blur-[100px]"></div>
+      </div>
+
+
+      <div className="container mx-auto px-6">
+        <div className="flex flex-col md:flex-row items-center gap-12">
+          <div className="w-full md:w-1/2 text-center md:text-right z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-cyan-300 font-semibold text-sm mb-6 border border-blue-500/20 backdrop-blur-sm">
+              <Sparkles size={16} />
+              הדרך החדשה ללמוד מתמטיקה
+            </div>
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight tracking-tight">
+              הגיע הזמן <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                להבין מתמטיקה.
+              </span>
+            </h1>
+            <p className="text-xl text-slate-300 mb-10 leading-relaxed max-w-2xl">
+              אם נמאס לכם להתעצבן מהמקצוע וממורים שלא יודעים ללמד, ברוכים הבאים - אתם במקום הנכון!
+              הגעתם למקום היחיד שמשלב שיעורים עם AI, גישה כיפית, סיכומים מסודרים ועזרה 24/7 בכל מה שתצטרכו.
+              <span className="block mt-2 font-bold text-blue-300">זה הזמן לשינוי.</span>
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <button onClick={() => navigateTo('store')} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-600/20 hover:bg-blue-500 transition transform hover:-translate-y-1">
+                <BookOpen size={20} />
+                לערכות התרגול
+              </button>
+              <button onClick={() => navigateTo('lessons')} className="flex items-center justify-center gap-2 bg-white/10 text-white border border-white/20 px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/20 transition backdrop-blur-sm">
+                <Video size={20} />
+                לשיעורים פרטיים
+              </button>
+            </div>
+          </div>
+
+
+          <div className="w-full md:w-1/2 flex justify-center z-10">
+             <div className="relative w-[350px] h-[450px] bg-gradient-to-b from-slate-800 to-slate-900 rounded-[40px] border-4 border-slate-800 shadow-2xl overflow-hidden transform hover:scale-[1.02] transition duration-500">
+                {/* Updated Image: Roie at Whiteboard - WEBP */}
+                <img
+                  src="IMG_8823.webp"
+                  alt="רועי מלמד על הלוח"
+                  className="w-full h-full object-cover"
+                />
+             </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+
+    {/* Section: I know how you feel */}
+    <section className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+            <div className="flex flex-col md:flex-row items-center gap-12 bg-slate-50 rounded-3xl p-8 md:p-16 border border-slate-100 shadow-sm">
+                <div className="w-full md:w-1/3 flex justify-center">
+                    {/* Updated Image: Roie with Students */}
+                    <div className="w-72 h-72 bg-slate-200 rounded-3xl rotate-3 border-4 border-white shadow-xl overflow-hidden">
+                         <img
+                            src="public/lovable-uploads/IMG_5931.webp"
+                            alt="רועי עם תלמידים"
+                            className="w-full h-full object-cover transform hover:scale-110 transition duration-500"
+                         />
+                    </div>
+                </div>
+                <div className="w-full md:w-2/3">
+                    <h2 className="text-4xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                        אני יודע בדיוק איך אתם מרגישים.
+                        <Heart size={48} className="fill-blue-600 text-blue-600 animate-pulse hover:scale-110 transition cursor-pointer" />
+                    </h2>
+                    <p className="text-2xl text-slate-700 leading-loose font-medium">
+                        בתור מורה צעיר בן 20, אני הרגע הייתי שם - למדתי עם מורים שלא יודעים ללמד, כאלו שצועקים ואכפת להם רק מציונים.
+                        ודווקא בגלל זה החלטתי להיכנס לחינוך ולהילחם בזה. היום אני מלווה עשרות תלמידים ומאות בוגרים שמבינים שאפשר גם אחרת.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    {/* Video & Testimonials Section */}
+    <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+      {/* Abstract Background */}
+      <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none">
+         <div className="absolute top-10 left-10 w-48 h-48 bg-blue-500 rounded-full blur-[80px]"></div>
+         <div className="absolute bottom-10 right-10 w-64 h-64 bg-cyan-500 rounded-full blur-[80px]"></div>
+      </div>
+
+
+      <div className="container mx-auto px-6 relative z-10 text-center">
+        <h2 className="text-3xl md:text-5xl font-bold mb-2">אז למה אני כל כך בטוח בעצמי?</h2>
+        <p className="text-xl text-slate-400 mb-16">אני לא צריך לשכנע אתכם..</p>
+
+
+        {/* Video Carousel Container */}
+        <div className="relative max-w-6xl mx-auto min-h-[600px] flex items-center justify-center">
+           
+            {/* Floating Testimonials Images - Positioned relative to center */}
+            {/* Top Right */}
+            <div className="hidden lg:block absolute top-[10%] right-[15%] w-48 bg-white/10 backdrop-blur-md rounded-xl rotate-6 border border-white/20 shadow-2xl transform hover:scale-110 transition z-10 overflow-hidden">
+                 <img src="public/public/images/testimonials/osher.jpg" alt="המלצה 1" className="w-full h-auto opacity-90" />
+            </div>
+           
+            {/* Bottom Right */}
+            <div className="hidden lg:block absolute bottom-[20%] right-[18%] w-40 bg-white/10 backdrop-blur-md rounded-xl -rotate-3 border border-white/20 shadow-2xl transform hover:scale-110 transition z-10 overflow-hidden">
+                 <img src="public/public/images/testimonials/nadav.jpg" alt="המלצה 2" className="w-full h-auto opacity-90" />
+            </div>
+           
+            {/* Top Left */}
+            <div className="hidden lg:block absolute top-[15%] left-[18%] w-44 bg-white/10 backdrop-blur-md rounded-xl -rotate-6 border border-white/20 shadow-2xl transform hover:scale-110 transition z-10 overflow-hidden">
+                 <img src="public/public/images/testimonials/eyal.jpg" alt="המלצה 3" className="w-full h-auto opacity-90" />
+            </div>
+           
+            {/* Bottom Left */}
+            <div className="hidden lg:block absolute bottom-[15%] left-[15%] w-52 bg-white/10 backdrop-blur-md rounded-xl rotate-3 border border-white/20 shadow-2xl transform hover:scale-110 transition z-10 overflow-hidden">
+                 <img src="public/public/images/testimonials/lior.jpg" alt="המלצה 4" className="w-full h-auto opacity-90" />
+            </div>
+
+
+            {/* Central Vertical Video Carousel */}
+            <div className="relative z-20 flex flex-col items-center">
+                <div className="w-[300px] aspect-[9/16] bg-black rounded-[30px] border-8 border-slate-800 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-slate-800 flex flex-col items-center justify-center text-slate-500">
+                        <Play size={48} className="text-white mb-4" />
+                        <span className="font-bold text-white px-6 text-center">{slides[currentSlide].quote}</span>
+                        <span className="text-sm text-slate-400 mt-2">{slides[currentSlide].author}</span>
+                        <div className="text-xs mt-8">[סרטון המלצה {currentSlide + 1}]</div>
+                    </div>
+                   
+                    {/* Progress Bar for carousel */}
+                    <div key={currentSlide} className="absolute bottom-0 left-0 h-1 bg-blue-500 transition-all duration-[6000ms] ease-linear" style={{ width: isPlaying ? '100%' : '0%' }}></div>
+                </div>
+               
+                {!isPlaying && (
+                    <button onClick={restartCarousel} className="mt-8 text-blue-400 hover:text-blue-300 flex items-center gap-2 font-bold transition">
+                        <Play size={16} />
+                        נגן המלצות שוב
+                    </button>
+                )}
+            </div>
+        </div>
+
+
+        <div className="mt-16">
+            <button onClick={() => navigateTo('lessons')} className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-10 py-4 rounded-2xl font-bold text-xl hover:shadow-lg hover:shadow-cyan-500/30 transition transform hover:-translate-y-1">
+                תראה לנו מה אתה מציע
+            </button>
+        </div>
+      </div>
+    </section>
+
+
+    {/* General Features Grid (Socials etc) */}
+    <section className="py-24 bg-slate-50">
+      <div className="container mx-auto px-6">
+       
+        {/* New Headers for this section */}
+        <div className="text-center mb-16">
+             <h2 className="text-4xl font-black text-slate-900 mb-4">למה דווקא אלוגברה?</h2>
+             <div className="flex flex-col items-center justify-center gap-2">
+                <h3 className="text-2xl font-bold text-blue-600">מה אנחנו מציעים שאין לאחרים</h3>
+                <ArrowDown className="text-blue-600 animate-bounce mt-2" size={32} />
+             </div>
+        </div>
+
+
+        <div className="grid md:grid-cols-3 gap-8 text-center">
+           <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition border-t-4 border-blue-500">
+              <div className="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-blue-600"><Smartphone size={32} /></div>
+              <h3 className="text-2xl font-bold mb-4 text-slate-900">זמינות 24/7</h3>
+              <p className="text-slate-600 text-lg leading-relaxed">
+                  עוזרים לכם בהכל, כל הזמן. <br/>
+                  בקבוצות הוואטסאפ ובפרטי.
+              </p>
+           </div>
+           
+           <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition border-t-4 border-cyan-500">
+              <div className="bg-cyan-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-cyan-600"><Monitor size={32} /></div>
+              <h3 className="text-2xl font-bold mb-4 text-slate-900">תרגול משולב עם AI</h3>
+              <p className="text-slate-600 text-lg leading-relaxed">
+                  בניתי לכל התלמידים שלי כלי מיוחד שמאפשר לתרגל לבד בצורה הכי כיפית שאפשר!
+              </p>
+           </div>
+           
+           <div className="bg-white p-8 rounded-3xl shadow-sm hover:shadow-md transition border-t-4 border-purple-500">
+              <div className="bg-purple-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 text-purple-600"><Star size={32} /></div>
+              <h3 className="text-2xl font-bold mb-4 text-slate-900">הצלחה מובטחת</h3>
+              <p className="text-slate-600 text-lg leading-relaxed">
+                  הוכחות בשטח, תלמידים ממליצים, בניית ביטחון עצמי וכלים לחיים.
+              </p>
+           </div>
+        </div>
+
+
+        {/* WhatsApp CTA Button */}
+        <div className="mt-16 text-center">
+             <a href={links.whatsappLesson} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-3 bg-green-500 text-white px-8 py-4 rounded-full font-bold text-xl hover:bg-green-600 transition shadow-lg shadow-green-500/30 transform hover:-translate-y-1">
+                 <MessageCircle size={24} />
+                 לקביעת שיעור לחצו כאן
+             </a>
+        </div>
+      </div>
+    </section>
+  </>
+)};
+
+
+const LessonsView = ({ links }) => (
+  <section className="py-20 bg-white min-h-[80vh] animate-in fade-in duration-500">
+    <div className="container mx-auto px-6">
+     
+      {/* 1. The Hook - Problem */}
+      <div className="text-center mb-24 max-w-4xl mx-auto">
+          <h2 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 leading-tight">
+             מתמטיקה מרגישה לכם כמו...
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 mt-2">
+               סיוט אחד גדול?
+            </span>
+          </h2>
+          <p className="text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto font-medium">
+            אתם יושבים בכיתה, המורה מדבר, וכולם נראים כאילו הם מבינים... <br/>
+            <span className="text-slate-800 font-bold">ורק אתם מרגישים שפספסתם משהו לפני 20 דקות ועכשיו הכל אבוד.</span>
+          </p>
+          <div className="mt-8 text-4xl font-extrabold text-slate-900 border-b-8 border-blue-500 inline-block pb-3 transform hover:scale-105 transition duration-300">
+            זה לא צריך להיות ככה.
+          </div>
+      </div>
+
+
+      {/* 2. The Solution */}
+      <div className="flex flex-col md:flex-row items-center gap-16 mb-32">
+         <div className="w-full md:w-1/2">
+             <div className="relative">
+                <div className="absolute inset-0 bg-blue-600 rounded-3xl transform rotate-3 opacity-10"></div>
+                {/* Updated Image: Roie Teaching on Zoom */}
+                <div className="relative rounded-3xl shadow-2xl transition duration-500 hover:scale-[1.01] bg-slate-200 h-[400px] flex items-center justify-center overflow-hidden">
+                    <img
+                        src="public/lovable-uploads/or.webp"
+                        alt="שיעור זום עם רועי"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+             </div>
+         </div>
+         <div className="w-full md:w-1/2">
+             <h3 className="text-4xl font-black text-slate-900 mb-8">באלוגברה החוקים משתנים.</h3>
+             <ul className="space-y-8">
+                 <li className="flex gap-5">
+                     <div className="bg-blue-100 p-4 rounded-2xl h-fit shrink-0"><MessageCircle className="text-blue-600" size={24} /></div>
+                     <div>
+                         <h4 className="font-bold text-xl mb-1 text-slate-900">שפה פשוטה בלי חפירות</h4>
+                         <p className="text-slate-600 leading-relaxed">מדברים תכלס, בגובה העיניים, בלי מילים מפוצצות שרק מסבכות.</p>
+                     </div>
+                 </li>
+                 <li className="flex gap-5">
+                     <div className="bg-cyan-100 p-4 rounded-2xl h-fit shrink-0"><Target className="text-cyan-600" size={24} /></div>
+                     <div>
+                         <h4 className="font-bold text-xl mb-1 text-slate-900">מותאם בול אליכם</h4>
+                         <p className="text-slate-600 leading-relaxed">החומר קשה? נסביר עד שתבינו. קל לכם? נרוץ קדימה. <br/><strong>לא משאירים אף אחד מאחור.</strong></p>
+                     </div>
+                 </li>
+                 <li className="flex gap-5">
+                     <div className="bg-green-100 p-4 rounded-2xl h-fit shrink-0"><Heart className="text-green-600" size={24} /></div>
+                     <div>
+                         <h4 className="font-bold text-xl mb-1 text-slate-900">ביטחון עצמי וכלים לחיים</h4>
+                         <p className="text-slate-600 leading-relaxed">המטרה היא לא רק הציון, אלא שתגיעו למבחן רגועים ותצאו ממנו בתחושה טובה.</p>
+                     </div>
+                 </li>
+             </ul>
+         </div>
+      </div>
+
+
+      {/* 3. MEET ROIE + INTERACTIVE ELEMENT */}
+      <div className="mb-32 bg-slate-900 rounded-[3rem] p-8 md:p-16 text-white relative overflow-hidden">
+          {/* Animated Background Elements - More Mathy */}
+          <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none font-mono text-xs overflow-hidden">
+             {/* Simple visual representation of math formulas in background */}
+             <div className="absolute top-10 right-10 transform rotate-12">f(x) = x² + 2x</div>
+             <div className="absolute top-1/2 right-1/4 transform -rotate-12 text-2xl">∑</div>
+             <div className="absolute bottom-20 left-10 transform rotate-45 text-2xl">π</div>
+             <div className="absolute top-1/4 left-10 transform rotate-6 text-xl">√x</div>
+             <div className="absolute top-10 right-10 w-32 h-32 border-4 border-blue-500 rounded-full animate-bounce delay-700"></div>
+             <div className="absolute bottom-20 left-20 w-24 h-24 border-4 border-cyan-400 rotate-45 animate-pulse"></div>
+             <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-blue-600/30 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
+          </div>
+
+
+          <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
+              <div className="w-full lg:w-1/3">
+                  <div className="w-80 h-96 mx-auto bg-slate-800 rounded-3xl border-4 border-slate-700 overflow-hidden shadow-2xl rotate-[-3deg] hover:rotate-0 transition duration-500">
+                     {/* Updated Image: Reusing Board Image for consistency or use another profile pic - made bigger */}
+                     <img
+                        src="public/lovable-uploads/73388517-d675-4a3b-bdec-a667582ebbb9.webp"
+                        alt="רועי"
+                        className="w-full h-full object-cover"
+                     />
+                  </div>
+              </div>
+             
+              <div className="w-full lg:w-2/3 text-center lg:text-right">
+                  <div className="inline-block bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold mb-6">נעים להכיר</div>
+                  <h2 className="text-3xl md:text-5xl font-bold mb-6">היי, אני רועי.</h2>
+                  <p className="text-xl text-slate-300 mb-8 leading-relaxed font-light">
+                      עד גיל 16, כל פעם שהגעתי למבחן היה לי "שחור בעיניים".
+                      אבל ברגע שמישהו הסביר לי את זה נכון, בשפה שלי - הכל השתנה.
+                      <br/><br/>
+                      היום אני כאן כדי להראות לכם שמתמטיקה <span className="text-blue-400 font-bold">לא חייבת להיות מפחידה.</span> אני משלב את הניסיון שלי בהוראה עם טכנולוגיה חדשנית, כדי שתוכלו ללמוד בדרך שמתאימה למוח שלכם ב-2025.
+                  </p>
+                 
+                  {/* Interactive Math Viz Placeholder with Stats */}
+                  <div className="flex flex-col md:flex-row gap-4 mt-8">
+                      {/* Stat 1 */}
+                      <div className="flex-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:bg-slate-800 transition group">
+                          <div className="text-left mb-2">
+                              <div className="text-sm text-slate-400 mb-1">תלמידים שנעזרו באלוגברה</div>
+                              <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400 group-hover:scale-105 transition-transform origin-left">
+                                 342+
+                              </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-green-400 text-sm">
+                             <Users size={16} /> הצטרפו להצלחה
+                          </div>
+                      </div>
+
+
+                      {/* Stat 2 */}
+                      <div className="flex-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:bg-slate-800 transition group">
+                          <div className="text-left mb-2">
+                              <div className="text-sm text-slate-400 mb-1">שיפור בציונים ובביטחון</div>
+                              <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 group-hover:scale-105 transition-transform origin-left">
+                                 97%
+                              </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-purple-400 text-sm">
+                             <TrendingUp size={16} /> מוכח בשטח
+                          </div>
+                      </div>
+
+
+                      {/* Stat 3 */}
+                       <div className="flex-1 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 flex flex-col justify-between hover:bg-slate-800 transition group">
+                          <div className="text-left mb-2">
+                              <div className="text-sm text-slate-400 mb-1">זמינות בווצאפ</div>
+                              <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 group-hover:scale-105 transition-transform origin-left">
+                                 24/7
+                              </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-cyan-400 text-sm">
+                             <Clock size={16} /> מענה מהיר
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+
+      {/* 4. WALL OF LOVE */}
+      <div className="mb-24">
+        <h2 className="text-4xl font-bold text-center text-slate-900 mb-4 flex items-center justify-center gap-3">
+            ועוד המון...
+            <Heart className="fill-blue-500 text-blue-500 animate-pulse" size={32} />
+        </h2>
+       
+        <div className="max-w-7xl mx-auto px-4 mt-12">
+             {/* Masonry Grid with Specific Images */}
+             <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+               
+                {/* 1. Square Image - Centered feel in first column */}
+                <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/f9ef0fe2-5feb-4ff8-bd9c-a959731f5407.jpg" alt="המלצה מרובעת 1" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 2. Long Image */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/92da429c-9298-4cd1-8c94-8c8bb9c406e2.png" alt="המלצה ארוכה" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 3. Regular Image */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/public/images/testimonials/eyal.jpg" alt="המלצה אייל" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 4. Square Image - Second column focus */}
+                <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/12532e8f-24a8-4422-99dd-05ada4e2395c.jpg" alt="המלצה מרובעת 2" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 5. Long Image */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/ad6a6cc7-3db5-43b7-a0ef-cd59e36df49f.png" alt="המלצה ארוכה 2" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                 {/* 6. Regular Image */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/public/images/testimonials/nadav.jpg" alt="המלצה נדב" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 7. Square Image - Third column focus */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/31ace368-ed5c-4eb4-ae06-741edb695532.jpg" alt="המלצה מרובעת 3" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 8. Google Review */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/google3.png" alt="המלצה גוגל" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 9. Grades */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/grades-testimonial.jpeg" alt="ציונים" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                 {/* 10. Long Image */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/IMG_7320.jpeg" alt="המלצה ארוכה 3" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 11. Extra Image 1 */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/img3.jpg" alt="המלצה נוספת 1" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+
+
+                {/* 12. Extra Image 2 */}
+                 <div className="break-inside-avoid rounded-2xl overflow-hidden shadow-lg border border-slate-100 group hover:shadow-xl transition">
+                     <img src="public/lovable-uploads/img4.jpg" alt="המלצה נוספת 2" className="w-full h-auto object-cover group-hover:scale-105 transition duration-500" />
+                </div>
+                 
+             </div>
+        </div>
+      </div>
+
+
+      {/* Call to Action */}
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-3xl p-12 text-center shadow-xl mx-auto max-w-4xl">
+          <h2 className="text-3xl font-bold mb-4">מוכנים לנסות משהו אחר?</h2>
+          <p className="text-blue-100 mb-8 text-lg">שיעור ניסיון ללא התחייבות, כדי שתראו בעצמכם את ההבדל.</p>
+          <a href={links.whatsappLesson} className="bg-white text-blue-600 px-10 py-4 rounded-xl font-bold hover:bg-blue-50 transition shadow-lg inline-flex items-center gap-2">
+            <Video size={20} />
+            קבעו שיעור ניסיון עכשיו
+          </a>
+      </div>
+
+
+    </div>
+  </section>
+);
+
+
+const StoreView = ({ links }) => {
+    const [formData, setFormData] = useState({ name: '', phone: '', email: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        // Simulate API call
+        setTimeout(() => {
+            setIsSubmitting(false);
+            setSubmitted(true);
+        }, 1500);
+    };
+
+
+    return (
+  <section className="py-20 bg-slate-50 min-h-[80vh] relative animate-in fade-in duration-500">
+    <div className="absolute top-20 right-0 w-1/3 h-full bg-gradient-to-b from-blue-100/50 to-transparent -z-10"></div>
+    <div className="container mx-auto px-6">
+     
+      <div className="text-center max-w-4xl mx-auto mb-16">
+        <h2 className="mb-6 leading-tight">
+          <span className="block text-6xl md:text-7xl font-black text-slate-900 mb-2 relative inline-block">
+             חדש באלוגברה
+             {/* Interactive underline/box effect */}
+             <span className="absolute -bottom-2 right-0 w-full h-4 bg-yellow-300 -z-10 transform -rotate-1 rounded-sm group-hover:scale-110 transition"></span>
+          </span>
+          <br/>
+          <span className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">
+             סיכומים שיסדרו אתכם!
+          </span>
+        </h2>
+        <p className="text-slate-600 text-lg leading-relaxed max-w-2xl mx-auto">
+          לא לכולם מתאים שיעור פרטי. חלק פשוט אוהבים את החומר מסודר עם סיכומים ברורים - <span className="font-bold text-slate-800">זה בדיוק מה שיצרתי לכם פה.</span>
+          <br/>
+          בשילוב עם מערכת מתקדמת לתרגול - תקבלו מעטפת שתכסה אתכם לאורך כל השנה!
+        </p>
+      </div>
+
+
+      {/* FREE SAMPLE TEASER */}
+      <div className="max-w-4xl mx-auto mb-16">
+         <div className="bg-gradient-to-r from-purple-600 to-pink-500 rounded-3xl p-1 shadow-xl transform hover:scale-[1.01] transition duration-300">
+            <div className="bg-white rounded-[20px] p-8 md:p-10 flex flex-col md:flex-row items-center gap-8">
+                <div className="bg-purple-100 p-6 rounded-full">
+                    <Download size={40} className="text-purple-600 animate-bounce" />
+                </div>
+                <div className="flex-1 text-center md:text-right">
+                    <h3 className="text-2xl font-bold text-slate-900 mb-2">רוצים לראות איך זה עובד? קבלו טעימה חינם! 🎁</h3>
+                    <p className="text-slate-600">
+                        הכינונו לכם סיכום ממוקד + תרגול לדוגמא במתנה.
+                        בלי התחייבות, רק כדי שתראו כמה שזה ברור.
+                    </p>
+                </div>
+                <button className="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 transition whitespace-nowrap shadow-lg flex items-center gap-2">
+                    <Download size={18} />
+                    להורדת הדוגמא
+                </button>
+            </div>
+         </div>
+      </div>
+
+
+      <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-24">
+        {/* Grade 8 */}
+        <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 hover:border-blue-300 transition-all hover:shadow-2xl hover:-translate-y-1 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-bl-xl z-10 shadow-md">רב מכר 🔥</div>
+          <div className="bg-blue-50/80 rounded-2xl p-6 mb-6 flex justify-center items-center h-48 group-hover:bg-blue-100/80 transition backdrop-blur-sm">
+            <Calculator size={64} className="text-blue-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-900 mb-2">ערכת הכנה - כיתה ח'</h3>
+          <p className="text-slate-500 mb-6">סיכומים, משוואות, גיאומטריה ומערכת תרגול מלאה.</p>
+         
+          <div className="flex flex-col gap-3 mb-8">
+            <div className="flex items-center gap-2 text-sm text-slate-600 font-medium"><Check size={16} className="text-green-500" /> כולל את כל החומר השנתי</div>
+            <div className="flex items-center gap-2 text-sm text-slate-600 font-medium"><Check size={16} className="text-green-500" /> מערכת תרגול בחינה אמיתית</div>
+            <div className="flex items-center gap-2 text-sm text-slate-600 font-medium"><Check size={16} className="text-green-500" /> בדיקה אוטומטית (פידבק מיידי)</div>
+            {/* Green Badge */}
+            <div className="flex items-center gap-2 text-sm text-green-800 bg-green-50 p-2 rounded-lg font-bold border border-green-100">
+                <Zap size={16} className="fill-green-600 text-green-600" />
+                בונוס: קבוצת וואטסאפ סגורה לטיפים והצלחה!
+            </div>
+          </div>
+         
+          <div className="flex items-center justify-between mt-auto">
+            <div><span className="text-3xl font-bold text-slate-900">₪69</span><span className="text-sm text-slate-400 line-through mr-2">₪150</span></div>
+            <a href={links.whatsappGrade8} target="_blank" rel="noreferrer" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-200">רכישה מיידית <ChevronLeft size={16} /></a>
+          </div>
+        </div>
+
+
+        {/* Grade 9 */}
+        <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100 hover:border-cyan-300 transition-all hover:shadow-2xl hover:-translate-y-1 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 bg-cyan-500 text-white text-xs font-bold px-4 py-2 rounded-bl-xl z-10 shadow-md">הכנה לתיכון 🚀</div>
+          <div className="bg-cyan-50/80 rounded-2xl p-6 mb-6 flex justify-center items-center h-48 group-hover:bg-cyan-100/80 transition backdrop-blur-sm">
+            <Smartphone size={64} className="text-cyan-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-900 mb-2">ערכת הכנה - כיתה ט'</h3>
+          <p className="text-slate-500 mb-6">הכנה למפמ"ר, פונקציות מתקדמות ומעבר לתיכון.</p>
+         
+          <div className="flex flex-col gap-3 mb-8">
+            <div className="flex items-center gap-2 text-sm text-slate-600 font-medium"><Check size={16} className="text-green-500" /> כולל את כל החומר השנתי</div>
+            <div className="flex items-center gap-2 text-sm text-slate-600 font-medium"><Check size={16} className="text-green-500" /> מערכת תרגול בחינה אמיתית</div>
+            <div className="flex items-center gap-2 text-sm text-slate-600 font-medium"><Check size={16} className="text-green-500" /> בדיקה אוטומטית (פידבק מיידי)</div>
+            {/* Green Badge */}
+            <div className="flex items-center gap-2 text-sm text-green-800 bg-green-50 p-2 rounded-lg font-bold border border-green-100">
+                <Zap size={16} className="fill-green-600 text-green-600" />
+                בונוס: קבוצת וואטסאפ סגורה לטיפים והצלחה!
+            </div>
+          </div>
+         
+          <div className="flex items-center justify-between mt-auto">
+            <div><span className="text-3xl font-bold text-slate-900">₪69</span><span className="text-sm text-slate-400 line-through mr-2">₪150</span></div>
+            <a href={links.whatsappGrade9} target="_blank" rel="noreferrer" className="bg-cyan-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-cyan-600 transition flex items-center gap-2 shadow-lg shadow-cyan-200">רכישה מיידית <ChevronLeft size={16} /></a>
+          </div>
+        </div>
+      </div>
+
+
+      {/* COMING SOON - NOTIFICATION FORM */}
+      <div className="max-w-2xl mx-auto bg-white rounded-3xl p-8 shadow-lg border border-slate-100 text-center relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-purple-400"></div>
+          <h3 className="text-2xl font-bold text-slate-900 mb-2">בקרוב: סיכומים לכיתות ז' ותלמידי תיכון! 📚</h3>
+          <p className="text-slate-500 mb-6">רוצים שנודיע לכם ברגע שזה מוכן? השאירו פרטים:</p>
+         
+          {submitted ? (
+              <div className="bg-green-50 text-green-700 p-4 rounded-xl font-bold animate-in fade-in">
+                  תודה! נעדכן אותך בקרוב.
+              </div>
+          ) : (
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-sm mx-auto">
+                  <input
+                    type="text"
+                    placeholder="שם מלא (חובה)"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  />
+                  <input
+                    type="tel"
+                    placeholder="מספר טלפון (חובה)"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  />
+                  <input
+                    type="email"
+                    placeholder="מייל (לא חובה)"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition flex items-center justify-center gap-2 disabled:opacity-70"
+                  >
+                      {isSubmitting ? 'שולח...' : 'עדכנו אותי'}
+                      {!isSubmitting && <Send size={16} />}
+                  </button>
+              </form>
+          )}
+      </div>
+
+
+    </div>
+  </section>
+)};
+
+
+export default App;
+
