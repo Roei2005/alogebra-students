@@ -1,59 +1,58 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <script>
-    // --- הגדרות ---
-    const SESSION_KEY = 'access_grade8';
-    const LOGIN_PAGE = '../index8.html';
-    const TIMEOUT_MINUTES = 15;
+        // --- הגדרות ---
+        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
+        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        const TIMEOUT_MINUTES = 30;
 
-    // 1. בדיקת כניסה (הגנה מקישורים ישירים)
-    if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-        window.location.href = LOGIN_PAGE;
-        throw new Error("Access Denied");
-    }
-
-    // 2. מנגנון ניתוק אוטומטי (15 דקות)
-    let inactivityTimer;
-    function resetTimer() {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-            sessionStorage.removeItem(SESSION_KEY); // מחיקת האישור
-            window.location.href = LOGIN_PAGE; // העפה לדף הבית
-        }, TIMEOUT_MINUTES * 60 * 1000);
-    }
-    
-    // איפוס הטיימר בכל פעולה של המשתמש
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-    document.onclick = resetTimer;
-    document.ontouchstart = resetTimer; // לטלפונים
-
-    // 3. חסימת F12 ומקש ימני
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('keydown', event => {
-        if (event.key === 'F12' || 
-            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
-            (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
+        // 1. בדיקת כניסה
+        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+            window.location.replace(LOGIN_PAGE);
         }
-    });
-</script>
+
+        // 2. ניתוק אוטומטי
+        let inactivityTimer;
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.replace(LOGIN_PAGE);
+            }, TIMEOUT_MINUTES * 60 * 1000);
+        }
+
+        window.addEventListener('load', resetTimer);
+        document.addEventListener('mousemove', resetTimer);
+        document.addEventListener('keypress', resetTimer);
+        document.addEventListener('click', resetTimer);
+        document.addEventListener('touchstart', resetTimer);
+
+        // 3. חסימת F12
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12' ||
+                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
+                (event.ctrlKey && event.key === 'u')) {
+                event.preventDefault();
+            }
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>שברים ומשוואות - המדריך המלא</title>
-    
+
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
+
     <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -63,8 +62,11 @@
             background-color: #f0f9ff;
             -webkit-tap-highlight-color: transparent;
         }
-        .no-break { white-space: nowrap; }
-        
+
+        .no-break {
+            white-space: nowrap;
+        }
+
         /* סגנון לשברים */
         .fraction-wrapper {
             display: inline-flex;
@@ -74,7 +76,7 @@
             margin: 0 0.5rem;
             position: relative;
         }
-        
+
         .numerator {
             border-bottom: 2px solid currentColor;
             padding: 0 4px;
@@ -83,6 +85,7 @@
             display: block;
             white-space: nowrap;
         }
+
         .denominator {
             padding-top: 2px;
             text-align: center;
@@ -97,17 +100,19 @@
             top: -2.8rem;
             left: 50%;
             transform: translateX(-50%);
-            color: #ef4444; /* red-500 */
+            color: #ef4444;
+            /* red-500 */
             font-weight: 900;
             font-size: 1.2rem;
             animation: bounce 1s infinite;
             background: white;
             padding: 2px 6px;
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             border: 2px solid #fca5a5;
             z-index: 10;
         }
+
         .multiplier-line {
             position: absolute;
             top: -1.2rem;
@@ -120,20 +125,54 @@
         }
 
         @keyframes bounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-5px); }
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(-5px);
+            }
         }
 
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* גלילה חלקה */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
     <div id="root" class="flex-grow"></div>
 
@@ -194,7 +233,7 @@
 
                         <div className="bg-indigo-50 p-6 rounded-2xl mb-8 border border-indigo-100 overflow-x-auto">
                             <h3 className="font-bold text-lg text-indigo-800 mb-4 text-center">התרגיל שלנו:</h3>
-                            <div className="flex justify-center items-center gap-2 dir-ltr no-break min-w-max mx-auto" style={{direction: 'ltr'}}>
+                            <div className="flex justify-center items-center gap-2 dir-ltr no-break min-w-max mx-auto" style={{ direction: 'ltr' }}>
                                 <Fraction top="x" bottom="3" />
                                 <span className="text-2xl font-bold">+</span>
                                 <Fraction top="x" bottom="4" />
@@ -221,7 +260,7 @@
                                         <li>ל-4 חסר <strong>3</strong>.</li>
                                         <li>ל-7 (בלי מכנה) חסר <strong>12</strong> (הכל).</li>
                                     </ul>
-                                    <div className="flex justify-center items-center gap-4 mt-8 mb-4 overflow-x-auto py-6 px-2" style={{direction: 'ltr'}}>
+                                    <div className="flex justify-center items-center gap-4 mt-8 mb-4 overflow-x-auto py-6 px-2" style={{ direction: 'ltr' }}>
                                         <Fraction top="x" bottom="3" multiplier="4" />
                                         <span className="text-2xl font-bold text-gray-400">+</span>
                                         <Fraction top="x" bottom="4" multiplier="3" />
@@ -235,18 +274,18 @@
                                 </Step>
 
                                 <Step num="3" title="כופלים ומעיפים את המכנה">
-                                    <div className="text-center my-4 font-mono text-xl md:text-2xl bg-white border-2 border-dashed border-gray-300 p-4 rounded-xl overflow-x-auto" style={{direction: 'ltr'}}>
+                                    <div className="text-center my-4 font-mono text-xl md:text-2xl bg-white border-2 border-dashed border-gray-300 p-4 rounded-xl overflow-x-auto" style={{ direction: 'ltr' }}>
                                         <span className="text-red-500 font-bold">4</span>•x + <span className="text-red-500 font-bold">3</span>•x = <span className="text-red-500 font-bold">12</span>•7
                                     </div>
-                                    <div className="text-center font-bold text-3xl text-indigo-700" style={{direction: 'ltr'}}>
+                                    <div className="text-center font-bold text-3xl text-indigo-700" style={{ direction: 'ltr' }}>
                                         4x + 3x = 84
                                     </div>
                                 </Step>
 
                                 <Step num="4" title="פתרון סופי">
-                                    <div className="text-center text-xl font-bold mt-2" style={{direction: 'ltr'}}>7x = 84</div>
+                                    <div className="text-center text-xl font-bold mt-2" style={{ direction: 'ltr' }}>7x = 84</div>
                                     <div className="text-center mt-2">
-                                        <span className="inline-block bg-green-100 text-green-800 px-6 py-2 rounded-xl text-3xl font-black shadow-sm" style={{direction: 'ltr'}}>x = 12</span>
+                                        <span className="inline-block bg-green-100 text-green-800 px-6 py-2 rounded-xl text-3xl font-black shadow-sm" style={{ direction: 'ltr' }}>x = 12</span>
                                     </div>
                                 </Step>
 
@@ -268,7 +307,7 @@
                 <div className="max-w-3xl mx-auto pb-20 fade-in px-2">
                     <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl border-t-8 border-red-500">
                         <h2 className="text-3xl font-black text-gray-800 mb-4 text-center flex items-center justify-center gap-2"><Icons.Warning /> מכנה עם X</h2>
-                        
+
                         <div className="bg-red-50 p-4 rounded-xl text-center border border-red-100 mb-8">
                             <p className="font-bold text-red-800 text-lg">חוק ברזל: אסור לחלק ב-0!</p>
                             <p className="text-sm text-red-600">לכן תמיד נתחיל בבדיקת "תחום הגדרה".</p>
@@ -276,7 +315,7 @@
 
                         <div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-200 overflow-x-auto">
                             <h3 className="font-bold text-xl text-gray-800 mb-4 text-center">התרגיל:</h3>
-                            <div className="flex justify-center items-center gap-2 dir-ltr min-w-max mx-auto" style={{direction: 'ltr'}}>
+                            <div className="flex justify-center items-center gap-2 dir-ltr min-w-max mx-auto" style={{ direction: 'ltr' }}>
                                 <Fraction top="10" bottom="x" />
                                 <span className="text-2xl font-bold">+</span>
                                 <Fraction top="4" bottom="2x" />
@@ -295,7 +334,7 @@
                                     <p>המכנים הם <span className="font-mono">x</span> ו-<span className="font-mono">2x</span>.</p>
                                     <p>מתי הם שווים ל-0? כש-x הוא 0.</p>
                                     <div className="mt-2 text-center">
-                                        <span className="bg-red-100 text-red-800 px-4 py-1 rounded-lg font-bold border border-red-200" style={{direction: 'ltr'}}>x ≠ 0</span>
+                                        <span className="bg-red-100 text-red-800 px-4 py-1 rounded-lg font-bold border border-red-200" style={{ direction: 'ltr' }}>x ≠ 0</span>
                                     </div>
                                 </Step>
 
@@ -310,7 +349,7 @@
                                         <li>ל-<span className="font-mono">2x</span> לא חסר כלום (כופלים ב-<strong>1</strong>).</li>
                                         <li>ל-3 חסר <strong>הכל</strong> (כופלים ב-<strong>2x</strong>).</li>
                                     </ul>
-                                    <div className="flex justify-center items-center gap-4 mt-8 mb-4 overflow-x-auto py-6 px-2" style={{direction: 'ltr'}}>
+                                    <div className="flex justify-center items-center gap-4 mt-8 mb-4 overflow-x-auto py-6 px-2" style={{ direction: 'ltr' }}>
                                         <Fraction top="10" bottom="x" multiplier="2" />
                                         <span className="text-2xl font-bold text-gray-400">+</span>
                                         <Fraction top="4" bottom="2x" multiplier="1" />
@@ -324,13 +363,13 @@
                                 </Step>
 
                                 <Step num="4" title="פתרון ובדיקה">
-                                    <div className="text-center my-4 font-mono text-lg bg-white border-2 border-dashed border-gray-300 p-4 rounded-xl overflow-x-auto" style={{direction: 'ltr'}}>
+                                    <div className="text-center my-4 font-mono text-lg bg-white border-2 border-dashed border-gray-300 p-4 rounded-xl overflow-x-auto" style={{ direction: 'ltr' }}>
                                         2•10 + 1•4 = 3•2x
                                     </div>
-                                    <div className="text-center font-bold text-2xl text-gray-800 mb-2" style={{direction: 'ltr'}}>20 + 4 = 6x</div>
-                                    <div className="text-center font-bold text-2xl text-gray-800 mb-4" style={{direction: 'ltr'}}>24 = 6x</div>
+                                    <div className="text-center font-bold text-2xl text-gray-800 mb-2" style={{ direction: 'ltr' }}>20 + 4 = 6x</div>
+                                    <div className="text-center font-bold text-2xl text-gray-800 mb-4" style={{ direction: 'ltr' }}>24 = 6x</div>
                                     <div className="text-center">
-                                        <span className="inline-block bg-green-100 text-green-800 px-6 py-2 rounded-xl text-3xl font-black shadow-sm" style={{direction: 'ltr'}}>x = 4</span>
+                                        <span className="inline-block bg-green-100 text-green-800 px-6 py-2 rounded-xl text-3xl font-black shadow-sm" style={{ direction: 'ltr' }}>x = 4</span>
                                     </div>
                                     <div className="mt-4 text-center font-bold text-green-700">
                                         האם 4 מותר? כן! (כי הוא לא 0)
@@ -358,14 +397,14 @@
                             <Icons.Bomb />
                             <h2 className="text-3xl font-black text-gray-800">מוקש המינוס! 💣</h2>
                         </div>
-                        
+
                         <p className="text-xl text-center text-gray-600 mb-8">
                             שימו לב: כשיש מינוס לפני שבר, הוא תקף לכל המונה (כאילו יש סוגריים).
                         </p>
 
                         <div className="bg-purple-50 p-6 rounded-2xl mb-8 border border-purple-100 overflow-x-auto">
                             <h3 className="font-bold text-lg text-purple-800 mb-4 text-center">תרגיל מורכב:</h3>
-                            <div className="flex justify-center items-center gap-2 dir-ltr no-break min-w-max mx-auto" style={{direction: 'ltr'}}>
+                            <div className="flex justify-center items-center gap-2 dir-ltr no-break min-w-max mx-auto" style={{ direction: 'ltr' }}>
                                 <Fraction top="x + 2" bottom="4" />
                                 <span className="text-3xl font-bold text-red-500 mx-1">-</span>
                                 <Fraction top="x - 1" bottom="3" />
@@ -390,7 +429,7 @@
                                         <li>ל-3 חסר <strong>4</strong>.</li>
                                         <li>ל-2 חסר <strong>12</strong>.</li>
                                     </ul>
-                                    <div className="flex justify-center items-center gap-4 mt-8 mb-4 overflow-x-auto py-6 px-2" style={{direction: 'ltr'}}>
+                                    <div className="flex justify-center items-center gap-4 mt-8 mb-4 overflow-x-auto py-6 px-2" style={{ direction: 'ltr' }}>
                                         <Fraction top="x+2" bottom="4" multiplier="3" />
                                         <span className="text-3xl font-bold text-red-500 mx-1">-</span>
                                         <Fraction top="x-1" bottom="3" multiplier="4" />
@@ -405,23 +444,23 @@
 
                                 <Step num="3" title="השלב הקריטי: סוגריים!">
                                     <p>כשכופלים, חובה לשים סוגריים על המונים, במיוחד בגלל המינוס!</p>
-                                    <div className="text-center my-4 font-mono text-lg md:text-xl bg-red-50 border-2 border-red-200 p-4 rounded-xl text-red-900 overflow-x-auto" style={{direction: 'ltr'}}>
+                                    <div className="text-center my-4 font-mono text-lg md:text-xl bg-red-50 border-2 border-red-200 p-4 rounded-xl text-red-900 overflow-x-auto" style={{ direction: 'ltr' }}>
                                         3(x + 2) - 4(x - 1) = 12•2
                                     </div>
                                     <p className="text-sm text-gray-500 text-center">שימו לב: המינוס 4 כופל את הכל!</p>
                                 </Step>
 
                                 <Step num="4" title="פתיחת סוגריים ופתרון">
-                                    <div className="text-center font-bold text-xl mb-2" style={{direction: 'ltr'}}>3x + 6 - 4x + 4 = 24</div>
+                                    <div className="text-center font-bold text-xl mb-2" style={{ direction: 'ltr' }}>3x + 6 - 4x + 4 = 24</div>
                                     <div className="text-center text-sm text-gray-500 mb-4">(שימו לב: מינוס 4 כפול מינוס 1 זה פלוס 4)</div>
-                                    
+
                                     <p className="text-center">כינוס איברים:</p>
-                                    <div className="text-center font-bold text-xl mb-2" style={{direction: 'ltr'}}>-x + 10 = 24</div>
+                                    <div className="text-center font-bold text-xl mb-2" style={{ direction: 'ltr' }}>-x + 10 = 24</div>
                                     <p className="text-center">העברת אגפים:</p>
-                                    <div className="text-center font-bold text-xl mb-4" style={{direction: 'ltr'}}>-x = 14</div>
-                                    
+                                    <div className="text-center font-bold text-xl mb-4" style={{ direction: 'ltr' }}>-x = 14</div>
+
                                     <div className="text-center">
-                                        <span className="inline-block bg-green-100 text-green-800 px-6 py-2 rounded-xl text-3xl font-black shadow-sm" style={{direction: 'ltr'}}>x = -14</span>
+                                        <span className="inline-block bg-green-100 text-green-800 px-6 py-2 rounded-xl text-3xl font-black shadow-sm" style={{ direction: 'ltr' }}>x = -14</span>
                                     </div>
                                 </Step>
 
@@ -576,7 +615,7 @@
                                     {q.term}
                                 </div>
                             )}
-                            
+
                             {!showHint && selected === null && (
                                 <button onClick={() => setShowHint(true)} className="block mx-auto mt-4 text-yellow-600 font-bold text-sm flex items-center gap-1 hover:bg-yellow-50 px-3 py-1 rounded-lg transition-colors">
                                     <Icons.Bulb /> אני צריך רמז
@@ -624,7 +663,7 @@
         // --- מסך ראשי ---
         const Menu = ({ onSelect }) => (
             <div className="max-w-4xl mx-auto px-4 py-12 text-center fade-in">
-                
+
                 {/* כפתור חזרה ללובי - ממוקם בתוך הקומפוננטה הראשית */}
                 <div className="absolute top-4 left-4">
                     <a href="../index.html" className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 font-bold bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
@@ -681,7 +720,7 @@
                             <Icons.Home />
                         </button>
                     )}
-                    
+
                     {view === 'menu' && <Menu onSelect={setView} />}
                     {view === 'numerical' && <NumericalLesson onFinish={() => setView('menu')} />}
                     {view === 'variable' && <VariableLesson onFinish={() => setView('menu')} />}
@@ -695,4 +734,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>

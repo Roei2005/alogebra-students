@@ -1,59 +1,58 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <script>
-    // --- הגדרות ---
-    const SESSION_KEY = 'access_grade8';
-    const LOGIN_PAGE = '../index8.html';
-    const TIMEOUT_MINUTES = 15;
+        // --- הגדרות ---
+        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
+        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        const TIMEOUT_MINUTES = 30;
 
-    // 1. בדיקת כניסה (הגנה מקישורים ישירים)
-    if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-        window.location.href = LOGIN_PAGE;
-        throw new Error("Access Denied");
-    }
-
-    // 2. מנגנון ניתוק אוטומטי (15 דקות)
-    let inactivityTimer;
-    function resetTimer() {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-            sessionStorage.removeItem(SESSION_KEY); // מחיקת האישור
-            window.location.href = LOGIN_PAGE; // העפה לדף הבית
-        }, TIMEOUT_MINUTES * 60 * 1000);
-    }
-    
-    // איפוס הטיימר בכל פעולה של המשתמש
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-    document.onclick = resetTimer;
-    document.ontouchstart = resetTimer; // לטלפונים
-
-    // 3. חסימת F12 ומקש ימני
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('keydown', event => {
-        if (event.key === 'F12' || 
-            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
-            (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
+        // 1. בדיקת כניסה
+        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+            window.location.replace(LOGIN_PAGE);
         }
-    });
-</script>
+
+        // 2. ניתוק אוטומטי
+        let inactivityTimer;
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.replace(LOGIN_PAGE);
+            }, TIMEOUT_MINUTES * 60 * 1000);
+        }
+
+        window.addEventListener('load', resetTimer);
+        document.addEventListener('mousemove', resetTimer);
+        document.addEventListener('keypress', resetTimer);
+        document.addEventListener('click', resetTimer);
+        document.addEventListener('touchstart', resetTimer);
+
+        // 3. חסימת F12
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12' ||
+                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
+                (event.ctrlKey && event.key === 'u')) {
+                event.preventDefault();
+            }
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>משוואות בארבעה שלבים</title>
-    
+
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
+
     <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -62,34 +61,49 @@
             font-family: 'Rubik', sans-serif;
             background-color: #f8fafc;
         }
+
         .math-term {
             font-family: 'Rubik', sans-serif;
             direction: ltr;
             display: inline-block;
         }
+
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         /* Custom scrollbar for better UX */
         ::-webkit-scrollbar {
             width: 8px;
         }
+
         ::-webkit-scrollbar-track {
-            background: #f1f1f1; 
+            background: #f1f1f1;
         }
+
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
+            background: #cbd5e1;
             border-radius: 4px;
         }
+
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
+            background: #94a3b8;
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
     <div id="root" class="flex-grow"></div>
 
@@ -107,7 +121,7 @@
         const IconCheck = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><polyline points="20 6 9 17 4 12"></polyline></svg>;
         const IconX = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-red-600"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>;
         const IconArrowLeft = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>;
-        const IconTrophy = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8m-4-9v9m-4.8-9A4.8 4.8 0 0112 7.2 4.8 4.8 0 0116.8 12M3 12h.01M21 12h.01M3 7h.01M21 7h.01"></path><path d="M8 21h8"></path><path d="M12 17a5 5 0 0 0 5-5c0-2.76-2.24-5-5-5s-5 2.24-5 5a5 5 0 0 0 5 5z"></path></svg>; 
+        const IconTrophy = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8m-4-9v9m-4.8-9A4.8 4.8 0 0112 7.2 4.8 4.8 0 0116.8 12M3 12h.01M21 12h.01M3 7h.01M21 7h.01"></path><path d="M8 21h8"></path><path d="M12 17a5 5 0 0 0 5-5c0-2.76-2.24-5-5-5s-5 2.24-5 5a5 5 0 0 0 5 5z"></path></svg>;
         const IconBulb = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 16.5 8 4.5 4.5 0 0 0 12 3.5 4.5 4.5 0 0 0 7.5 8c0 1.16.52 2.17 1.41 2.5A6.9 6.9 0 0 1 10 14"></path></svg>;
         const IconHome = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>;
 
@@ -183,7 +197,7 @@
                             <h4 className="font-bold text-green-700 mb-2 text-xl">טיפ חשוב: העברת איקסים</h4>
                             <p>אפשר להעביר איקסים מאגף לאגף בדיוק כמו מספרים!</p>
                             <p>אם יש לנו <span className="math-term text-green-600 font-bold">2x</span> בצד ימין, נעביר אותו לצד שמאל כ-<span class="math-term text-red-500 font-bold">-2x</span>.</p>
-                            <hr class="my-3 border-gray-200"/>
+                            <hr class="my-3 border-gray-200" />
                             <h4 className="font-bold text-green-700 mb-2 text-xl">איך מחברים איקסים?</h4>
                             <p>פשוט מאוד: מחברים את המספרים (המקדמים) וה-X נשאר.</p>
                             <p class="text-center bg-gray-100 p-2 rounded mt-2 font-mono" dir="ltr">3x + 2x = (3+2)x = 5x</p>
@@ -281,7 +295,7 @@
                     </div>
                     <div className="p-10">
                         {lesson.content}
-                        <button 
+                        <button
                             onClick={onComplete}
                             className="mt-10 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-[1.02] shadow-lg text-xl flex items-center justify-center gap-3"
                         >
@@ -358,7 +372,7 @@
                                 }
 
                                 return (
-                                    <button 
+                                    <button
                                         key={idx}
                                         onClick={() => handleAnswer(idx)}
                                         className={btnClass}
@@ -382,7 +396,7 @@
                                         <p className="text-blue-800 leading-relaxed text-lg">{question.explanation}</p>
                                     </div>
                                 </div>
-                                <button 
+                                <button
                                     onClick={nextQuestion}
                                     className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex justify-center items-center gap-3 text-xl"
                                 >
@@ -433,7 +447,7 @@
                         <div className="text-8xl mb-6">📝</div>
                         <h2 className="text-4xl font-black text-indigo-900 mb-4">תוצאות המבחן</h2>
                         <div className="text-6xl font-black text-indigo-600 mb-4">{percentage}%</div>
-                        <p className="text-xl text-gray-600 mb-8">{message}<br/>ענית נכון על {score} מתוך {finalQuizQuestions.length} שאלות.</p>
+                        <p className="text-xl text-gray-600 mb-8">{message}<br />ענית נכון על {score} מתוך {finalQuizQuestions.length} שאלות.</p>
                         <button onClick={onBack} className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-4 px-12 rounded-2xl transition-all text-xl shadow-sm border border-gray-300">
                             סיום וחזרה
                         </button>
@@ -446,7 +460,7 @@
                     <div className="flex justify-between items-center mb-8 px-4">
                         <span className="bg-indigo-600 text-white px-5 py-2 rounded-full font-bold shadow-md text-lg">שאלה {currentQIndex + 1} / {finalQuizQuestions.length}</span>
                         <div className="flex gap-2">
-                            {Array.from({length: finalQuizQuestions.length}).map((_, i) => (
+                            {Array.from({ length: finalQuizQuestions.length }).map((_, i) => (
                                 <div key={i} className={`h-2 w-2 rounded-full ${i < currentQIndex ? 'bg-indigo-600' : 'bg-gray-300'} hidden md:block`}></div>
                             ))}
                         </div>
@@ -455,7 +469,7 @@
 
                     <div className="bg-white rounded-3xl shadow-xl border border-indigo-50 overflow-hidden relative">
                         {/* פס התקדמות עליון */}
-                        <div className="absolute top-0 right-0 h-2 bg-indigo-600 transition-all duration-500" style={{width: `${((currentQIndex + 1) / finalQuizQuestions.length) * 100}%`}}></div>
+                        <div className="absolute top-0 right-0 h-2 bg-indigo-600 transition-all duration-500" style={{ width: `${((currentQIndex + 1) / finalQuizQuestions.length) * 100}%` }}></div>
 
                         <div className="p-12 text-center border-b border-gray-100 bg-gray-50">
                             <h3 className="text-5xl font-black text-gray-800 math-term dir-ltr tracking-wide">
@@ -467,7 +481,7 @@
                             {/* אזור רמז */}
                             <div className="mb-6 flex justify-center">
                                 {!hintShown && selectedOption === null ? (
-                                    <button 
+                                    <button
                                         onClick={() => setHintShown(true)}
                                         className="text-yellow-600 font-bold flex items-center gap-2 hover:bg-yellow-50 px-4 py-2 rounded-xl transition-colors"
                                     >
@@ -495,7 +509,7 @@
                                     }
 
                                     return (
-                                        <button 
+                                        <button
                                             key={idx}
                                             onClick={() => handleAnswer(idx)}
                                             className={btnClass}
@@ -520,7 +534,7 @@
                                         <p className="text-indigo-800 leading-relaxed text-lg">{question.explanation}</p>
                                     </div>
                                 </div>
-                                <button 
+                                <button
                                     onClick={nextQuestion}
                                     className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex justify-center items-center gap-3 text-xl"
                                 >
@@ -581,15 +595,15 @@
                                         </div>
                                         <h3 className="text-3xl font-black text-gray-800 mb-3 group-hover:text-indigo-600 transition-colors">{lesson.title.split(': ')[1]}</h3>
                                         <p className="text-gray-500 mb-8 text-lg">{lesson.subtitle}</p>
-                                        
+
                                         <div className="flex gap-4">
-                                            <button 
+                                            <button
                                                 onClick={() => startLearning(lesson.id)}
                                                 className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-4 px-4 rounded-2xl flex items-center justify-center gap-2 transition-colors text-lg"
                                             >
                                                 <IconBook /> ללמוד
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => startQuiz(lesson.id)}
                                                 className="flex-1 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white font-bold py-4 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all text-lg"
                                             >
@@ -603,7 +617,7 @@
 
                         {/* כפתור למבחן המסכם */}
                         <div className="max-w-3xl mx-auto">
-                            <button 
+                            <button
                                 onClick={startFinalTest}
                                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black py-6 px-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-[1.01] flex items-center justify-center gap-4 text-2xl"
                             >
@@ -659,4 +673,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>

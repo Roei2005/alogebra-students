@@ -1,59 +1,58 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <script>
-    // --- הגדרות ---
-    const SESSION_KEY = 'access_grade8';
-    const LOGIN_PAGE = '../index8.html';
-    const TIMEOUT_MINUTES = 15;
+        // --- הגדרות ---
+        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
+        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        const TIMEOUT_MINUTES = 30;
 
-    // 1. בדיקת כניסה (הגנה מקישורים ישירים)
-    if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-        window.location.href = LOGIN_PAGE;
-        throw new Error("Access Denied");
-    }
-
-    // 2. מנגנון ניתוק אוטומטי (15 דקות)
-    let inactivityTimer;
-    function resetTimer() {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-            sessionStorage.removeItem(SESSION_KEY); // מחיקת האישור
-            window.location.href = LOGIN_PAGE; // העפה לדף הבית
-        }, TIMEOUT_MINUTES * 60 * 1000);
-    }
-    
-    // איפוס הטיימר בכל פעולה של המשתמש
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-    document.onclick = resetTimer;
-    document.ontouchstart = resetTimer; // לטלפונים
-
-    // 3. חסימת F12 ומקש ימני
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('keydown', event => {
-        if (event.key === 'F12' || 
-            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
-            (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
+        // 1. בדיקת כניסה
+        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+            window.location.replace(LOGIN_PAGE);
         }
-    });
-</script>
+
+        // 2. ניתוק אוטומטי
+        let inactivityTimer;
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.replace(LOGIN_PAGE);
+            }, TIMEOUT_MINUTES * 60 * 1000);
+        }
+
+        window.addEventListener('load', resetTimer);
+        document.addEventListener('mousemove', resetTimer);
+        document.addEventListener('keypress', resetTimer);
+        document.addEventListener('click', resetTimer);
+        document.addEventListener('touchstart', resetTimer);
+
+        // 3. חסימת F12
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12' ||
+                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
+                (event.ctrlKey && event.key === 'u')) {
+                event.preventDefault();
+            }
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>מאסטר האחוזים - כיתה ח'</title>
-    
+
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
+
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts (Rubik for Hebrew) -->
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -63,22 +62,34 @@
             background-color: #f0f4f8;
             -webkit-tap-highlight-color: transparent;
         }
+
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+
         .no-scrollbar {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
         .fade-in {
             animation: fadeIn 0.5s ease-out;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
     <div id="root" class="flex-grow"></div>
 
@@ -126,11 +137,10 @@
         const TabButton = ({ active, onClick, icon: Icon, label }) => (
             <button
                 onClick={onClick}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all duration-200 whitespace-nowrap ${
-                active 
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105' 
+                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold transition-all duration-200 whitespace-nowrap ${active
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
                     : 'bg-white text-gray-500 hover:bg-indigo-50 hover:text-indigo-600'
-                }`}
+                    }`}
             >
                 <Icon size={20} />
                 <span>{label}</span>
@@ -150,76 +160,75 @@
 
             return (
                 <div className="grid lg:grid-cols-2 gap-8 items-start fade-in">
-                {/* צד ימין: הגריד */}
-                <Card className="p-8">
-                    <h3 className="font-bold text-2xl text-indigo-900 mb-2 text-center">מה זה בעצם אחוז?</h3>
-                    <p className="text-center text-gray-500 mb-6">כל ריבוע מייצג אחוז אחד (1%) מהשלם</p>
-                    
-                    <div className="flex justify-center mb-8">
-                        <div className="grid grid-cols-10 gap-1.5 bg-gray-50 p-4 rounded-2xl border-2 border-gray-100 shadow-inner">
-                            {Array.from({ length: 100 }).map((_, i) => (
-                                <div 
-                                    key={i} 
-                                    className={`w-4 h-4 sm:w-6 sm:h-6 rounded-[4px] transition-all duration-300 ${
-                                    i < percent 
-                                        ? 'bg-gradient-to-br from-indigo-500 to-purple-600 scale-110 shadow-sm' 
-                                        : 'bg-white border border-gray-200'
-                                    }`}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                    {/* צד ימין: הגריד */}
+                    <Card className="p-8">
+                        <h3 className="font-bold text-2xl text-indigo-900 mb-2 text-center">מה זה בעצם אחוז?</h3>
+                        <p className="text-center text-gray-500 mb-6">כל ריבוע מייצג אחוז אחד (1%) מהשלם</p>
 
-                    <div className="px-4 bg-indigo-50 rounded-2xl p-6">
-                        <label className="flex justify-between font-bold text-indigo-900 mb-4">
-                            <span>גרירת האחוז:</span>
-                            <span className="text-2xl">{percent}%</span>
-                        </label>
-                        <input 
-                            type="range" min="0" max="100" step="1"
-                            value={percent}
-                            onChange={(e) => setPercent(parseInt(e.target.value))}
-                            className="w-full h-4 bg-gray-200 rounded-full appearance-none cursor-pointer accent-indigo-600"
-                        />
-                    </div>
-                </Card>
-
-                {/* צד שמאל: ההסבר והשברים */}
-                <div className="space-y-6">
-                    <Card className="p-8 bg-gradient-to-br from-indigo-600 to-purple-700 text-white border-none">
-                        <h4 className="font-bold text-2xl mb-4 flex items-center gap-2">
-                            <Lightbulb className="text-yellow-300" />
-                            המשמעות המתמטית
-                        </h4>
-                        <div className="text-lg opacity-90 leading-relaxed">
-                            המילה <strong>"אחוז"</strong> מגיעה מהמילה "מאה".
-                            <br/>
-                            זה פשוט שבר שהמכנה שלו הוא תמיד 100.
+                        <div className="flex justify-center mb-8">
+                            <div className="grid grid-cols-10 gap-1.5 bg-gray-50 p-4 rounded-2xl border-2 border-gray-100 shadow-inner">
+                                {Array.from({ length: 100 }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`w-4 h-4 sm:w-6 sm:h-6 rounded-[4px] transition-all duration-300 ${i < percent
+                                            ? 'bg-gradient-to-br from-indigo-500 to-purple-600 scale-110 shadow-sm'
+                                            : 'bg-white border border-gray-200'
+                                            }`}
+                                    />
+                                ))}
+                            </div>
                         </div>
-                        
-                        <div className="mt-8 bg-white/10 p-6 rounded-2xl backdrop-blur-sm border border-white/20">
-                            <div className="flex justify-around items-center text-3xl sm:text-4xl font-bold font-mono">
-                                <span>{percent}%</span>
-                                <span className="text-white/50">=</span>
-                                <Fraction n={percent} d="100" />
-                                <span className="text-white/50">=</span>
-                                <span>{(percent / 100).toFixed(2)}</span>
-                            </div>
-                            <div className="text-center mt-4 text-sm text-indigo-100 font-sans">
-                                (אחוז) &nbsp;&nbsp;&nbsp;&nbsp; (שבר פשוט) &nbsp;&nbsp;&nbsp;&nbsp; (שבר עשרוני)
-                            </div>
+
+                        <div className="px-4 bg-indigo-50 rounded-2xl p-6">
+                            <label className="flex justify-between font-bold text-indigo-900 mb-4">
+                                <span>גרירת האחוז:</span>
+                                <span className="text-2xl">{percent}%</span>
+                            </label>
+                            <input
+                                type="range" min="0" max="100" step="1"
+                                value={percent}
+                                onChange={(e) => setPercent(parseInt(e.target.value))}
+                                className="w-full h-4 bg-gray-200 rounded-full appearance-none cursor-pointer accent-indigo-600"
+                            />
                         </div>
                     </Card>
 
-                    <Card className="p-6 border-l-8 border-l-yellow-400">
-                        <h4 className="font-bold text-lg text-gray-800 mb-2">💡 טיפ לחיים:</h4>
-                        <p className="text-gray-600">
-                            קל יותר לחשב אחוזים אם הופכים אותם לשבר עשרוני.
-                            <br/>
-                            למשל: כדי לחשב <strong>20%</strong> ממשהו, פשוט כופלים ב-<strong>0.20</strong>.
-                        </p>
-                    </Card>
-                </div>
+                    {/* צד שמאל: ההסבר והשברים */}
+                    <div className="space-y-6">
+                        <Card className="p-8 bg-gradient-to-br from-indigo-600 to-purple-700 text-white border-none">
+                            <h4 className="font-bold text-2xl mb-4 flex items-center gap-2">
+                                <Lightbulb className="text-yellow-300" />
+                                המשמעות המתמטית
+                            </h4>
+                            <div className="text-lg opacity-90 leading-relaxed">
+                                המילה <strong>"אחוז"</strong> מגיעה מהמילה "מאה".
+                                <br />
+                                זה פשוט שבר שהמכנה שלו הוא תמיד 100.
+                            </div>
+
+                            <div className="mt-8 bg-white/10 p-6 rounded-2xl backdrop-blur-sm border border-white/20">
+                                <div className="flex justify-around items-center text-3xl sm:text-4xl font-bold font-mono">
+                                    <span>{percent}%</span>
+                                    <span className="text-white/50">=</span>
+                                    <Fraction n={percent} d="100" />
+                                    <span className="text-white/50">=</span>
+                                    <span>{(percent / 100).toFixed(2)}</span>
+                                </div>
+                                <div className="text-center mt-4 text-sm text-indigo-100 font-sans">
+                                    (אחוז) &nbsp;&nbsp;&nbsp;&nbsp; (שבר פשוט) &nbsp;&nbsp;&nbsp;&nbsp; (שבר עשרוני)
+                                </div>
+                            </div>
+                        </Card>
+
+                        <Card className="p-6 border-l-8 border-l-yellow-400">
+                            <h4 className="font-bold text-lg text-gray-800 mb-2">💡 טיפ לחיים:</h4>
+                            <p className="text-gray-600">
+                                קל יותר לחשב אחוזים אם הופכים אותם לשבר עשרוני.
+                                <br />
+                                למשל: כדי לחשב <strong>20%</strong> ממשהו, פשוט כופלים ב-<strong>0.20</strong>.
+                            </p>
+                        </Card>
+                    </div>
                 </div>
             );
         };
@@ -236,7 +245,7 @@
                         <h3 className="font-bold text-3xl text-indigo-900 mb-3">הנוסחה הפשוטה</h3>
                         <p className="text-gray-600 text-xl">
                             כדי לחשב אחוז ממספר, עושים שני שלבים פשוטים:
-                            <br/>
+                            <br />
                             <strong>מחלקים ב-100</strong> (כדי לקבל את השבר) ואז <strong>כופלים בשלם</strong>.
                         </p>
                     </div>
@@ -285,13 +294,13 @@
                     {/* איזור אינטראקטיבי */}
                     <Card className="p-8 bg-white border-2 border-indigo-100">
                         <h4 className="font-bold text-xl text-center mb-6 text-indigo-900">בואו ננסה את זה יחד:</h4>
-                        
+
                         <div className="grid md:grid-cols-2 gap-8 mb-8">
                             <div>
                                 <label className="block font-bold text-gray-600 mb-2">כמה השלם?</label>
                                 <div className="flex items-center gap-3">
-                                    <input 
-                                        type="range" min="0" max="1000" step="10" 
+                                    <input
+                                        type="range" min="0" max="1000" step="10"
                                         value={whole} onChange={(e) => setWhole(Number(e.target.value))}
                                         className="flex-1 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                                     />
@@ -301,8 +310,8 @@
                             <div>
                                 <label className="block font-bold text-gray-600 mb-2">כמה אחוזים?</label>
                                 <div className="flex items-center gap-3">
-                                    <input 
-                                        type="range" min="0" max="100" step="5" 
+                                    <input
+                                        type="range" min="0" max="100" step="5"
                                         value={percent} onChange={(e) => setPercent(Number(e.target.value))}
                                         className="flex-1 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                                     />
@@ -314,7 +323,7 @@
                         <div className="bg-indigo-50 p-6 rounded-2xl text-center">
                             <div className="text-gray-500 font-bold mb-2">החישוב:</div>
                             <div className="text-2xl md:text-3xl font-mono font-bold text-indigo-900 dir-ltr flex justify-center items-center gap-3 flex-wrap">
-                                <span className="bg-white px-3 py-1 rounded-lg shadow-sm text-indigo-500">{(percent/100).toFixed(2)}</span>
+                                <span className="bg-white px-3 py-1 rounded-lg shadow-sm text-indigo-500">{(percent / 100).toFixed(2)}</span>
                                 <span>×</span>
                                 <span className="bg-white px-3 py-1 rounded-lg shadow-sm text-indigo-500">{whole}</span>
                                 <span>=</span>
@@ -339,28 +348,26 @@
                 <div className="grid lg:grid-cols-2 gap-8 fade-in">
                     <div className="space-y-6">
                         <div className="bg-gray-100 p-1.5 rounded-2xl flex shadow-inner">
-                            <button 
+                            <button
                                 onClick={() => setMode('discount')}
-                                className={`flex-1 py-3 rounded-xl font-bold text-lg transition-all flex justify-center items-center gap-2 ${
-                                    mode === 'discount' ? 'bg-white text-green-600 shadow-md' : 'text-gray-500 hover:bg-gray-200'
-                                }`}
+                                className={`flex-1 py-3 rounded-xl font-bold text-lg transition-all flex justify-center items-center gap-2 ${mode === 'discount' ? 'bg-white text-green-600 shadow-md' : 'text-gray-500 hover:bg-gray-200'
+                                    }`}
                             >
-                                <TrendingDown size={22}/> הנחה (מבצע)
+                                <TrendingDown size={22} /> הנחה (מבצע)
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setMode('increase')}
-                                className={`flex-1 py-3 rounded-xl font-bold text-lg transition-all flex justify-center items-center gap-2 ${
-                                    mode === 'increase' ? 'bg-white text-red-600 shadow-md' : 'text-gray-500 hover:bg-gray-200'
-                                }`}
+                                className={`flex-1 py-3 rounded-xl font-bold text-lg transition-all flex justify-center items-center gap-2 ${mode === 'increase' ? 'bg-white text-red-600 shadow-md' : 'text-gray-500 hover:bg-gray-200'
+                                    }`}
                             >
-                                <TrendingUp size={22}/> התייקרות (מס)
+                                <TrendingUp size={22} /> התייקרות (מס)
                             </button>
                         </div>
 
                         <Card className="p-6 space-y-6">
                             <div>
                                 <label className="block text-gray-600 font-bold mb-2">מחיר מקורי (₪)</label>
-                                <input 
+                                <input
                                     type="number" value={price} onChange={(e) => setPrice(Math.max(0, Number(e.target.value)))}
                                     className="w-full p-4 text-3xl font-bold text-center border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none text-gray-700"
                                 />
@@ -371,7 +378,7 @@
                                     <label className="text-gray-600 font-bold">אחוז ה{mode === 'discount' ? 'הנחה' : 'תוספת'}</label>
                                     <span className={`font-bold text-xl ${mode === 'discount' ? 'text-green-600' : 'text-red-600'}`}>{percent}%</span>
                                 </div>
-                                <input 
+                                <input
                                     type="range" min="0" max="100" value={percent} onChange={(e) => setPercent(parseInt(e.target.value))}
                                     className={`w-full h-4 rounded-full appearance-none cursor-pointer ${mode === 'discount' ? 'bg-green-100 accent-green-600' : 'bg-red-100 accent-red-600'}`}
                                 />
@@ -414,29 +421,29 @@
             const [disc1, setDisc1] = useState(50);
             const [disc2, setDisc2] = useState(20);
 
-            const priceAfter1 = price * (1 - disc1/100);
-            const priceAfter2 = priceAfter1 * (1 - disc2/100);
+            const priceAfter1 = price * (1 - disc1 / 100);
+            const priceAfter2 = priceAfter1 * (1 - disc2 / 100);
 
             return (
                 <div className="space-y-8 fade-in">
                     <div className="text-center max-w-2xl mx-auto">
                         <h3 className="font-bold text-2xl text-indigo-900 mb-3">הנחה על הנחה (כפל מבצעים)</h3>
                         <p className="text-gray-600 text-lg">
-                            זה פשוט תהליך של שני שלבים. <br/>
+                            זה פשוט תהליך של שני שלבים. <br />
                             ההנחה השנייה היא על <strong>המחיר החדש</strong> (הנמוך יותר), ולא על המקורי.
                         </p>
                     </div>
 
                     {/* זרימה ליניארית פשוטה */}
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-2">
-                        
+
                         {/* שלב 1 */}
                         <div className="relative bg-white p-6 rounded-2xl shadow-lg border-2 border-gray-100 text-center w-full md:w-64">
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full">התחלה</div>
                             <p className="text-gray-500 font-bold mb-2">מחיר מקורי</p>
                             <div className="flex justify-center items-center gap-1">
                                 <span className="text-2xl text-gray-400">₪</span>
-                                <input 
+                                <input
                                     type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))}
                                     className="w-24 text-3xl font-bold text-center border-b-2 border-gray-200 outline-none focus:border-indigo-500"
                                 />
@@ -446,10 +453,10 @@
                         {/* חץ 1 */}
                         <div className="flex flex-col items-center text-blue-600 z-10">
                             <div className="text-sm font-bold bg-blue-50 px-2 py-1 rounded mb-1">הנחה ראשונה</div>
-                            <ArrowDown size={32} className="md:hidden animate-bounce"/>
-                            <ArrowLeft size={32} className="hidden md:block animate-pulse"/>
+                            <ArrowDown size={32} className="md:hidden animate-bounce" />
+                            <ArrowLeft size={32} className="hidden md:block animate-pulse" />
                             <div className="font-bold bg-white px-2 rounded border border-blue-200 mt-1">{disc1}%</div>
-                            <input type="range" min="0" max="90" step="5" value={disc1} onChange={e=>setDisc1(Number(e.target.value))} className="w-24 h-1 bg-blue-200 mt-1 rounded cursor-pointer"/>
+                            <input type="range" min="0" max="90" step="5" value={disc1} onChange={e => setDisc1(Number(e.target.value))} className="w-24 h-1 bg-blue-200 mt-1 rounded cursor-pointer" />
                         </div>
 
                         {/* שלב 2 */}
@@ -463,10 +470,10 @@
                         {/* חץ 2 */}
                         <div className="flex flex-col items-center text-purple-600 z-10">
                             <div className="text-sm font-bold bg-purple-50 px-2 py-1 rounded mb-1">הנחה נוספת</div>
-                            <ArrowDown size={32} className="md:hidden animate-bounce delay-100"/>
-                            <ArrowLeft size={32} className="hidden md:block animate-pulse delay-100"/>
+                            <ArrowDown size={32} className="md:hidden animate-bounce delay-100" />
+                            <ArrowLeft size={32} className="hidden md:block animate-pulse delay-100" />
                             <div className="font-bold bg-white px-2 rounded border border-purple-200 mt-1">{disc2}%</div>
-                            <input type="range" min="0" max="90" step="5" value={disc2} onChange={e=>setDisc2(Number(e.target.value))} className="w-24 h-1 bg-purple-200 mt-1 rounded cursor-pointer"/>
+                            <input type="range" min="0" max="90" step="5" value={disc2} onChange={e => setDisc2(Number(e.target.value))} className="w-24 h-1 bg-purple-200 mt-1 rounded cursor-pointer" />
                         </div>
 
                         {/* שלב 3 */}
@@ -551,7 +558,7 @@
                         </div>
                         <h3 className="text-3xl font-black text-indigo-900 mb-2">כל הכבוד!</h3>
                         <p className="text-gray-600 mb-8 text-lg">סיימת את רמת <span className="font-bold text-indigo-600">{level === 'easy' ? 'מתחילים' : level === 'medium' ? 'מתקדמים' : 'אלופים'}</span></p>
-                        
+
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
                             <div className="text-sm text-gray-500 uppercase font-bold tracking-widest mb-1">הציון שלך</div>
                             <div className="text-5xl font-black text-indigo-600">{Math.round((score / (questions.length * 10)) * 100)}</div>
@@ -559,11 +566,11 @@
 
                         <div className="flex gap-4 justify-center">
                             <button onClick={restart} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-200 text-gray-700 font-bold hover:bg-gray-300 transition">
-                                <RefreshCw size={20}/> נסה שוב
+                                <RefreshCw size={20} /> נסה שוב
                             </button>
                             {level !== 'hard' && (
-                                <button onClick={() => {setLevel(level === 'easy' ? 'medium' : 'hard'); restart();}} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
-                                    לרמה הבאה <ChevronLeft size={20}/>
+                                <button onClick={() => { setLevel(level === 'easy' ? 'medium' : 'hard'); restart(); }} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
+                                    לרמה הבאה <ChevronLeft size={20} />
                                 </button>
                             )}
                         </div>
@@ -579,11 +586,10 @@
                             <button
                                 key={l}
                                 onClick={() => { setLevel(l); restart(); }}
-                                className={`px-4 py-1.5 rounded-xl text-sm font-bold transition-all ${
-                                    level === l 
-                                    ? 'bg-indigo-100 text-indigo-700 shadow-sm' 
+                                className={`px-4 py-1.5 rounded-xl text-sm font-bold transition-all ${level === l
+                                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
                                     : 'text-gray-400 hover:text-gray-600'
-                                }`}
+                                    }`}
                             >
                                 {l === 'easy' ? 'מתחיל 🌱' : l === 'medium' ? 'מתקדם 🚀' : 'אלוף 💎'}
                             </button>
@@ -593,9 +599,9 @@
                     <Card className="p-8 relative overflow-visible">
                         {/* סרגל התקדמות */}
                         <div className="absolute top-0 left-0 w-full h-2 bg-gray-100">
-                            <div 
+                            <div
                                 className="h-full bg-indigo-500 transition-all duration-500 ease-out"
-                                style={{width: `${((qIndex + 1) / questions.length) * 100}%`}}
+                                style={{ width: `${((qIndex + 1) / questions.length) * 100}%` }}
                             />
                         </div>
 
@@ -614,19 +620,18 @@
                                     key={i}
                                     onClick={() => handleAnswer(i)}
                                     disabled={showResult !== null}
-                                    className={`w-full p-5 text-right rounded-xl border-2 transition-all duration-200 text-lg font-medium flex justify-between items-center ${
-                                        showResult !== null && i === curr.correct 
-                                            ? 'bg-green-50 border-green-500 text-green-800' 
-                                            : showResult === 'wrong' && i !== curr.correct 
-                                                ? 'opacity-40 border-gray-100' // Fade out wrong options
-                                                : showResult === 'wrong' && i === curr.correct // Highlight correct if wrong selected (optional, usually hidden in quizzes but good for learning)
-                                                    ? 'bg-green-50 border-green-500'
-                                                    : 'border-gray-100 hover:border-indigo-300 hover:bg-indigo-50 text-gray-700'
-                                    }`}
+                                    className={`w-full p-5 text-right rounded-xl border-2 transition-all duration-200 text-lg font-medium flex justify-between items-center ${showResult !== null && i === curr.correct
+                                        ? 'bg-green-50 border-green-500 text-green-800'
+                                        : showResult === 'wrong' && i !== curr.correct
+                                            ? 'opacity-40 border-gray-100' // Fade out wrong options
+                                            : showResult === 'wrong' && i === curr.correct // Highlight correct if wrong selected (optional, usually hidden in quizzes but good for learning)
+                                                ? 'bg-green-50 border-green-500'
+                                                : 'border-gray-100 hover:border-indigo-300 hover:bg-indigo-50 text-gray-700'
+                                        }`}
                                 >
                                     {opt}
-                                    {showResult !== null && i === curr.correct && <CheckCircle className="text-green-600 animate-in zoom-in"/>}
-                                    {showResult === 'wrong' && i !== curr.correct && selectedOption === i && <XCircle className="text-red-400"/>}
+                                    {showResult !== null && i === curr.correct && <CheckCircle className="text-green-600 animate-in zoom-in" />}
+                                    {showResult === 'wrong' && i !== curr.correct && selectedOption === i && <XCircle className="text-red-400" />}
                                 </button>
                             ))}
                         </div>
@@ -634,11 +639,11 @@
                         {/* איזור פידבק */}
                         <div className="mt-6 min-h-[100px]">
                             {!showResult && (
-                                <button 
+                                <button
                                     onClick={() => setHintShown(!hintShown)}
                                     className="text-orange-500 font-bold text-sm flex items-center gap-2 hover:bg-orange-50 px-3 py-2 rounded-lg transition-colors w-fit"
                                 >
-                                    <HelpCircle size={18}/> {hintShown ? 'הסתר רמז' : 'צריך רמז קטן?'}
+                                    <HelpCircle size={18} /> {hintShown ? 'הסתר רמז' : 'צריך רמז קטן?'}
                                 </button>
                             )}
 
@@ -655,7 +660,7 @@
                                     </div>
                                     <p className="text-gray-700 mb-4">{curr.exp}</p>
                                     <button onClick={nextQ} className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 w-full sm:w-auto justify-center">
-                                        {qIndex < questions.length - 1 ? 'לשאלה הבאה' : 'סיום וסיכום'} <ChevronLeft size={20}/>
+                                        {qIndex < questions.length - 1 ? 'לשאלה הבאה' : 'סיום וסיכום'} <ChevronLeft size={20} />
                                     </button>
                                 </div>
                             )}
@@ -674,7 +679,7 @@
                             <Zap className="text-yellow-500 fill-current" />
                             טריקים לחישוב מהיר
                         </h3>
-                        
+
                         <div className="space-y-4">
                             <div className="flex gap-4 p-4 rounded-2xl bg-blue-50 border border-blue-100 items-start">
                                 <div className="bg-blue-200 text-blue-800 font-bold text-xl px-3 py-1 rounded-lg">10%</div>
@@ -707,9 +712,9 @@
                         <h4 className="text-xl font-bold mb-2">למה זה חשוב?</h4>
                         <p className="text-gray-300 leading-relaxed max-w-sm">
                             כשתהיו בחנות והמוכר יגיד "יש 20% הנחה", לא תצטרכו מחשבון.
-                            <br/><br/>
+                            <br /><br />
                             פשוט חשבו 10% (תורידו אפס) ואז תכפילו ב-2.
-                            <br/>
+                            <br />
                             <span className="text-indigo-300 font-bold block mt-4 text-lg">פשוט וקל!</span>
                         </p>
                     </Card>
@@ -740,28 +745,28 @@
                     </div>
                     {/* כפתור לנייד */}
                     <div className="absolute top-4 left-4 z-30 md:hidden">
-                         <a href="../index.html" className="p-2 bg-white rounded-full shadow text-gray-500 block"><Home size={20} /></a>
+                        <a href="../index.html" className="p-2 bg-white rounded-full shadow text-gray-500 block"><Home size={20} /></a>
                     </div>
 
                     {/* Header */}
                     <header className="bg-white shadow-sm sticky top-0 z-20 border-b border-indigo-50">
                         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-200">
-                                <Percent size={28} strokeWidth={3} />
-                            </div>
-                            <div>
-                                <h1 className="font-black text-2xl text-indigo-950 tracking-tight leading-none">מאסטר האחוזים</h1>
-                                <p className="text-xs font-bold text-indigo-400">לומדים חכם בכיתה ח'</p>
+                            <div className="flex items-center gap-3">
+                                <div className="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-200">
+                                    <Percent size={28} strokeWidth={3} />
+                                </div>
+                                <div>
+                                    <h1 className="font-black text-2xl text-indigo-950 tracking-tight leading-none">מאסטר האחוזים</h1>
+                                    <p className="text-xs font-bold text-indigo-400">לומדים חכם בכיתה ח'</p>
+                                </div>
                             </div>
                         </div>
-                        </div>
-                        
+
                         {/* Navigation Bar */}
                         <div className="max-w-5xl mx-auto px-4 pb-2 overflow-x-auto no-scrollbar">
                             <div className="flex gap-2 min-w-max pb-2">
                                 {tabs.map((tab) => (
-                                    <TabButton 
+                                    <TabButton
                                         key={tab.id}
                                         active={activeTab === tab.id}
                                         onClick={() => setActiveTab(tab.id)}
@@ -792,4 +797,5 @@
         root.render(<PercentageMaster />);
     </script>
 </body>
+
 </html>

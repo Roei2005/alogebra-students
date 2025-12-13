@@ -1,59 +1,58 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <script>
-    // --- הגדרות ---
-    const SESSION_KEY = 'access_grade8';
-    const LOGIN_PAGE = '../index8.html';
-    const TIMEOUT_MINUTES = 15;
+        // --- הגדרות ---
+        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
+        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        const TIMEOUT_MINUTES = 30;
 
-    // 1. בדיקת כניסה (הגנה מקישורים ישירים)
-    if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-        window.location.href = LOGIN_PAGE;
-        throw new Error("Access Denied");
-    }
-
-    // 2. מנגנון ניתוק אוטומטי (15 דקות)
-    let inactivityTimer;
-    function resetTimer() {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-            sessionStorage.removeItem(SESSION_KEY); // מחיקת האישור
-            window.location.href = LOGIN_PAGE; // העפה לדף הבית
-        }, TIMEOUT_MINUTES * 60 * 1000);
-    }
-    
-    // איפוס הטיימר בכל פעולה של המשתמש
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-    document.onclick = resetTimer;
-    document.ontouchstart = resetTimer; // לטלפונים
-
-    // 3. חסימת F12 ומקש ימני
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('keydown', event => {
-        if (event.key === 'F12' || 
-            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
-            (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
+        // 1. בדיקת כניסה
+        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+            window.location.replace(LOGIN_PAGE);
         }
-    });
-</script>
+
+        // 2. ניתוק אוטומטי
+        let inactivityTimer;
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.replace(LOGIN_PAGE);
+            }, TIMEOUT_MINUTES * 60 * 1000);
+        }
+
+        window.addEventListener('load', resetTimer);
+        document.addEventListener('mousemove', resetTimer);
+        document.addEventListener('keypress', resetTimer);
+        document.addEventListener('click', resetTimer);
+        document.addEventListener('touchstart', resetTimer);
+
+        // 3. חסימת F12
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12' ||
+                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
+                (event.ctrlKey && event.key === 'u')) {
+                event.preventDefault();
+            }
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>מערכת משוואות - המדריך המלא</title>
-    
+
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
+
     <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
 
@@ -63,26 +62,49 @@
             background-color: #fdf4ff;
             -webkit-tap-highlight-color: transparent;
         }
+
         .math-font {
             font-family: 'Rubik', sans-serif;
             direction: ltr;
             display: inline-block;
         }
+
         .fade-in {
             animation: fadeIn 0.5s ease-out;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #fdf4ff; }
-        ::-webkit-scrollbar-thumb { background: #e879f9; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #d946ef; }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #fdf4ff;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e879f9;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d946ef;
+        }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
     <div id="root" class="flex-grow"></div>
 
@@ -261,8 +283,8 @@
                                             <span>x</span> <span>-y</span> <span>= 2</span>
                                         </div>
                                         <div className="grid grid-cols-3 gap-2 text-center text-2xl font-black text-blue-700 math-font">
-                                            <span>2x</span> 
-                                            <span className="text-gray-300 decoration-wavy line-through decoration-red-400 decoration-2">0</span> 
+                                            <span>2x</span>
+                                            <span className="text-gray-300 decoration-wavy line-through decoration-red-400 decoration-2">0</span>
                                             <span>= 8</span>
                                         </div>
                                     </div>
@@ -322,14 +344,14 @@
                         </p>
 
                         <div className="flex gap-4 mb-8 bg-gray-100 p-1.5 rounded-2xl shadow-inner">
-                            <button 
-                                onClick={() => setActiveChallenge('coeff')} 
+                            <button
+                                onClick={() => setActiveChallenge('coeff')}
                                 className={`flex-1 py-3 rounded-xl font-bold text-lg transition-all ${activeChallenge === 'coeff' ? 'bg-white text-pink-700 shadow-md' : 'text-gray-500 hover:bg-gray-200'}`}
                             >
                                 אין מקדמים שווים
                             </button>
-                            <button 
-                                onClick={() => setActiveChallenge('isolate')} 
+                            <button
+                                onClick={() => setActiveChallenge('isolate')}
                                 className={`flex-1 py-3 rounded-xl font-bold text-lg transition-all ${activeChallenge === 'isolate' ? 'bg-white text-pink-700 shadow-md' : 'text-gray-500 hover:bg-gray-200'}`}
                             >
                                 ה-X לא מבודד
@@ -353,7 +375,7 @@
                                     <p>במשוואה הראשונה יש <span className="math-font font-bold">+y</span>.</p>
                                     <p>בשנייה יש <span className="math-font font-bold text-red-600">-2y</span>.</p>
                                     <p>כדי שהם יבטלו זה את זה, נכפול את כל המשוואה הראשונה ב-2.</p>
-                                    
+
                                     <div className="bg-white p-4 rounded-xl border-2 border-pink-100 mt-4 text-center">
                                         <div className="math-font text-xl text-gray-400 line-through">3x + y = 11</div>
                                         <div className="text-sm font-bold text-pink-500 my-1">כפול 2 ↓</div>
@@ -393,7 +415,7 @@
                                 <Step num="1" title="מבודדים לבד">
                                     <p>נחפש נעלם ש"קל" לבודד אותו. במשוואה הראשונה ה-X נקי!</p>
                                     <p>נעביר את ה-<span className="math-font font-bold">-2y</span> לצד השני.</p>
-                                    
+
                                     <div className="bg-white p-4 rounded-xl border-2 border-pink-100 mt-4 text-center">
                                         <div className="math-font text-xl text-gray-400">x - 2y = 3</div>
                                         <div className="text-2xl font-bold text-gray-600">⬇</div>
@@ -500,7 +522,7 @@
                     <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
                         <div className="p-10 text-center border-b border-gray-100 bg-gray-50">
                             <h3 className="text-2xl font-bold text-gray-800 mb-6">{q.q}</h3>
-                            
+
                             {q.system && (
                                 <div className="bg-white inline-block px-10 py-6 rounded-2xl shadow-sm border-2 border-purple-50 mb-6">
                                     <div className="flex flex-col gap-2 text-2xl font-mono font-bold text-gray-700 math-font">
@@ -553,7 +575,7 @@
                 </div>
                 {/* כפתור לנייד */}
                 <div className="md:hidden flex justify-end mb-4">
-                     <a href="../index.html" className="p-2 bg-white rounded-full shadow text-gray-500"><Icons.Home /></a>
+                    <a href="../index.html" className="p-2 bg-white rounded-full shadow text-gray-500"><Icons.Home /></a>
                 </div>
 
                 <h1 className="text-4xl md:text-6xl font-black text-purple-900 mb-4 tracking-tight">מערכת משוואות</h1>
@@ -603,7 +625,7 @@
                             <Icons.Home />
                         </button>
                     )}
-                    
+
                     {view === 'menu' && <Menu onSelect={setView} />}
                     {view === 'substitution' && <SubstitutionLesson onFinish={() => setView('menu')} />}
                     {view === 'elimination' && <EliminationLesson onFinish={() => setView('menu')} />}
@@ -617,4 +639,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>

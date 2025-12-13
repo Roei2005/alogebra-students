@@ -1,49 +1,48 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <script>
-    // --- הגדרות ---
-    const SESSION_KEY = 'access_grade8';
-    const LOGIN_PAGE = '../index8.html';
-    const TIMEOUT_MINUTES = 15;
+        // --- הגדרות ---
+        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
+        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        const TIMEOUT_MINUTES = 30;
 
-    // 1. בדיקת כניסה (הגנה מקישורים ישירים)
-    if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-        window.location.href = LOGIN_PAGE;
-        throw new Error("Access Denied");
-    }
-
-    // 2. מנגנון ניתוק אוטומטי (15 דקות)
-    let inactivityTimer;
-    function resetTimer() {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-            sessionStorage.removeItem(SESSION_KEY); // מחיקת האישור
-            window.location.href = LOGIN_PAGE; // העפה לדף הבית
-        }, TIMEOUT_MINUTES * 60 * 1000);
-    }
-    
-    // איפוס הטיימר בכל פעולה של המשתמש
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-    document.onclick = resetTimer;
-    document.ontouchstart = resetTimer; // לטלפונים
-
-    // 3. חסימת F12 ומקש ימני
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('keydown', event => {
-        if (event.key === 'F12' || 
-            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
-            (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
+        // 1. בדיקת כניסה
+        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+            window.location.replace(LOGIN_PAGE);
         }
-    });
-</script>
+
+        // 2. ניתוק אוטומטי
+        let inactivityTimer;
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.replace(LOGIN_PAGE);
+            }, TIMEOUT_MINUTES * 60 * 1000);
+        }
+
+        window.addEventListener('load', resetTimer);
+        document.addEventListener('mousemove', resetTimer);
+        document.addEventListener('keypress', resetTimer);
+        document.addEventListener('click', resetTimer);
+        document.addEventListener('touchstart', resetTimer);
+
+        // 3. חסימת F12
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12' ||
+                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
+                (event.ctrlKey && event.key === 'u')) {
+                event.preventDefault();
+            }
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>הקו הישר: שיפוע וחיתוך - אלוגברה</title>
-    
+
     <!-- טעינת ספריות חיצוניות -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -52,12 +51,19 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap');
-        body { font-family: 'Rubik', sans-serif; }
-        
+
+        body {
+            font-family: 'Rubik', sans-serif;
+        }
+
         /* התאמות לכיווניות */
-        .ltr-override { direction: ltr; unicode-bidi: embed; }
+        .ltr-override {
+            direction: ltr;
+            unicode-bidi: embed;
+        }
     </style>
 </head>
+
 <body class="bg-slate-50 text-slate-800">
 
     <div id="root"></div>
@@ -72,10 +78,10 @@
             </svg>
         );
 
-        const TrendingUp = (p) => <IconBase {...p} d={<><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>} />;
-        const ArrowUp = (p) => <IconBase {...p} d={<><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></>} />;
-        const ArrowRight = (p) => <IconBase {...p} d={<><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>} />;
-        const MapPin = (p) => <IconBase {...p} d={<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></>} />;
+        const TrendingUp = (p) => <IconBase {...p} d={<><polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" /></>} />;
+        const ArrowUp = (p) => <IconBase {...p} d={<><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></>} />;
+        const ArrowRight = (p) => <IconBase {...p} d={<><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></>} />;
+        const MapPin = (p) => <IconBase {...p} d={<><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></>} />;
 
         // --- האפליקציה ---
         const App = () => {
@@ -108,20 +114,20 @@
 
             return (
                 <div className="min-h-screen bg-slate-50 p-4 font-sans text-slate-800" dir="rtl">
-                    
+
                     <header className="max-w-2xl mx-auto mb-6 text-center">
                         <h1 className="text-3xl font-bold text-indigo-700 mb-2">הקו הישר: שיפוע וחיתוך</h1>
                         <p className="text-slate-600">שחקו עם הפרמטרים וגלו איך הם משנים את הקו.</p>
                     </header>
 
                     <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                        
+
                         {/* גרף */}
                         <div className="bg-white p-4 rounded-3xl shadow-lg border border-slate-100 flex flex-col items-center relative order-2 md:order-1">
                             <div className="absolute top-4 right-4 bg-slate-100 px-3 py-1 rounded-full text-xs font-bold text-slate-500">
                                 מערכת צירים
                             </div>
-                            
+
                             <svg width={width} height={height} className="overflow-hidden rounded-xl border border-slate-50">
                                 <defs>
                                     <pattern id="grid" width={scale} height={scale} patternUnits="userSpaceOnUse">
@@ -137,24 +143,24 @@
                                 <text x={centerX + 8} y={15} className="text-xs font-bold fill-slate-400">y</text>
 
                                 {/* הקו הישר */}
-                                <line 
-                                    x1={toSvgX(x1)} y1={toSvgY(y1)} 
-                                    x2={toSvgX(x2)} y2={toSvgY(y2)} 
-                                    stroke="#6366f1" strokeWidth="3" 
+                                <line
+                                    x1={toSvgX(x1)} y1={toSvgY(y1)}
+                                    x2={toSvgX(x2)} y2={toSvgY(y2)}
+                                    stroke="#6366f1" strokeWidth="3"
                                 />
 
                                 {/* משולש השיפוע (המדרגה) */}
-                                <path 
+                                <path
                                     d={`M ${toSvgX(stepStartX)} ${toSvgY(stepStartY)} L ${toSvgX(stepEndX)} ${toSvgY(stepStartY)} L ${toSvgX(stepEndX)} ${toSvgY(stepEndY)}`}
                                     fill="rgba(16, 185, 129, 0.1)"
                                     stroke="#10b981"
                                     strokeWidth="2"
                                     strokeDasharray="4,4"
                                 />
-                                
+
                                 {/* נקודת החיתוך */}
                                 <circle cx={toSvgX(0)} cy={toSvgY(b)} r="6" fill="#f43f5e" stroke="white" strokeWidth="2" />
-                                
+
                                 {/* תווית לנקודת החיתוך */}
                                 <g transform={`translate(${toSvgX(0) + 10}, ${toSvgY(b)})`}>
                                     <rect x="0" y="-12" width="45" height="24" rx="4" fill="rgba(255,255,255,0.8)" />
@@ -163,7 +169,7 @@
 
                                 {/* תווית לשיפוע (על המשולש) */}
                                 <text x={toSvgX(0.5)} y={toSvgY(stepStartY) + 15} textAnchor="middle" className="text-[10px] font-bold fill-emerald-600">צעד 1</text>
-                                <text x={toSvgX(1) + 10} y={toSvgY(stepStartY + m/2)} className="text-[10px] font-bold fill-emerald-600">m={m}</text>
+                                <text x={toSvgX(1) + 10} y={toSvgY(stepStartY + m / 2)} className="text-[10px] font-bold fill-emerald-600">m={m}</text>
 
                             </svg>
 
@@ -175,7 +181,7 @@
 
                         {/* בקרה והסבר */}
                         <div className="space-y-6 order-1 md:order-2">
-                            
+
                             {/* כרטיס המשוואה */}
                             <div className="bg-white p-6 rounded-2xl shadow-lg border-t-4 border-indigo-500 text-center">
                                 <h2 className="text-sm font-bold text-slate-500 mb-2">משוואת הישר</h2>
@@ -189,7 +195,7 @@
 
                             {/* סליידרים */}
                             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 space-y-6">
-                                
+
                                 {/* שיפוע m */}
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
@@ -199,8 +205,8 @@
                                         </label>
                                         <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded font-mono font-bold text-sm ltr-override">m = {m}</span>
                                     </div>
-                                    <input 
-                                        type="range" min="-4" max="4" step="0.5" value={m} 
+                                    <input
+                                        type="range" min="-4" max="4" step="0.5" value={m}
                                         onChange={(e) => setM(parseFloat(e.target.value))}
                                         className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                                     />
@@ -220,8 +226,8 @@
                                         </label>
                                         <span className="bg-rose-50 text-rose-700 px-2 py-1 rounded font-mono font-bold text-sm ltr-override">b = {b}</span>
                                     </div>
-                                    <input 
-                                        type="range" min="-4" max="4" step="0.5" value={b} 
+                                    <input
+                                        type="range" min="-4" max="4" step="0.5" value={b}
                                         onChange={(e) => setB(parseFloat(e.target.value))}
                                         className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-rose-500"
                                     />
@@ -237,24 +243,24 @@
                     <div className="max-w-4xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-emerald-50 p-5 rounded-2xl border border-emerald-100">
                             <h3 className="font-bold text-emerald-900 mb-2 flex items-center gap-2">
-                                <ArrowUp className="w-4 h-4"/>
+                                <ArrowUp className="w-4 h-4" />
                                 מהו השיפוע (m)?
                             </h3>
                             <p className="text-sm text-emerald-800 leading-relaxed">
                                 השיפוע הוא "כמה אנחנו עולים". שימו לב למשולש הירוק בגרף: על כל צעד אחד ימינה (1), אנחנו עולים בדיוק <strong>{m}</strong> קומות.
-                                <br/>
+                                <br />
                                 אם m שלילי, אנחנו יורדים במקום לעלות.
                             </p>
                         </div>
 
                         <div className="bg-rose-50 p-5 rounded-2xl border border-rose-100">
                             <h3 className="font-bold text-rose-900 mb-2 flex items-center gap-2">
-                                <ArrowRight className="w-4 h-4"/>
+                                <ArrowRight className="w-4 h-4" />
                                 מהו החיתוך (b)?
                             </h3>
                             <p className="text-sm text-rose-800 leading-relaxed">
                                 הפרמטר b הוא נקודת ההתחלה שלנו. זה המקום שבו הקו חוצה את הציר הראשי (Y).
-                                <br/>
+                                <br />
                                 כש x=0, כל החלק של השיפוע מתאפס, ונשארנו רק עם <strong>y = b</strong>.
                             </p>
                         </div>
@@ -268,4 +274,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>

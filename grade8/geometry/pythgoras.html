@@ -1,49 +1,48 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
+
 <head>
     <script>
-    // --- הגדרות ---
-    const SESSION_KEY = 'access_grade8';
-    const LOGIN_PAGE = '../index8.html';
-    const TIMEOUT_MINUTES = 15;
+        // --- הגדרות ---
+        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
+        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        const TIMEOUT_MINUTES = 30;
 
-    // 1. בדיקת כניסה (הגנה מקישורים ישירים)
-    if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-        window.location.href = LOGIN_PAGE;
-        throw new Error("Access Denied");
-    }
-
-    // 2. מנגנון ניתוק אוטומטי (15 דקות)
-    let inactivityTimer;
-    function resetTimer() {
-        clearTimeout(inactivityTimer);
-        inactivityTimer = setTimeout(() => {
-            sessionStorage.removeItem(SESSION_KEY); // מחיקת האישור
-            window.location.href = LOGIN_PAGE; // העפה לדף הבית
-        }, TIMEOUT_MINUTES * 60 * 1000);
-    }
-    
-    // איפוס הטיימר בכל פעולה של המשתמש
-    window.onload = resetTimer;
-    document.onmousemove = resetTimer;
-    document.onkeypress = resetTimer;
-    document.onclick = resetTimer;
-    document.ontouchstart = resetTimer; // לטלפונים
-
-    // 3. חסימת F12 ומקש ימני
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('keydown', event => {
-        if (event.key === 'F12' || 
-            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
-            (event.ctrlKey && event.key === 'u')) {
-            event.preventDefault();
+        // 1. בדיקת כניסה
+        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+            window.location.replace(LOGIN_PAGE);
         }
-    });
-</script>
+
+        // 2. ניתוק אוטומטי
+        let inactivityTimer;
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                sessionStorage.removeItem(SESSION_KEY);
+                window.location.replace(LOGIN_PAGE);
+            }, TIMEOUT_MINUTES * 60 * 1000);
+        }
+
+        window.addEventListener('load', resetTimer);
+        document.addEventListener('mousemove', resetTimer);
+        document.addEventListener('keypress', resetTimer);
+        document.addEventListener('click', resetTimer);
+        document.addEventListener('touchstart', resetTimer);
+
+        // 3. חסימת F12
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12' ||
+                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
+                (event.ctrlKey && event.key === 'u')) {
+                event.preventDefault();
+            }
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>משפט פיתגורס - אלוגברה</title>
-    
+
     <!-- טעינת ספריות -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -52,35 +51,59 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap');
-        body { font-family: 'Rubik', sans-serif; background-color: #f0fdf4; overscroll-behavior: none; }
-        
-        .ltr-override { direction: ltr; unicode-bidi: embed; }
-        
+
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #f0fdf4;
+            overscroll-behavior: none;
+        }
+
+        .ltr-override {
+            direction: ltr;
+            unicode-bidi: embed;
+        }
+
         /* סגנון לסליידרים */
         input[type=range] {
             -webkit-appearance: none;
             width: 100%;
             background: transparent;
         }
+
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            height: 20px; width: 20px;
+            height: 20px;
+            width: 20px;
             border-radius: 50%;
             background: #16a34a;
             margin-top: -8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
+
         input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px;
+            width: 100%;
+            height: 4px;
             background: #bbf7d0;
             border-radius: 2px;
         }
-        
+
         /* אנימציה עדינה להופעת טקסט */
-        .fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
+
 <body class="h-screen flex flex-col text-slate-800 overflow-hidden">
 
     <div id="root" class="h-full flex flex-col"></div>
@@ -93,10 +116,10 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{d}</svg>
         );
         const TriangleIcon = () => <Icon d={<path d="M3 20h18L12 4z" />} className="w-5 h-5" />;
-        const CalculatorIcon = () => <Icon d={<><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></>} className="w-5 h-5" />;
-        const CheckIcon = () => <Icon d={<polyline points="20 6 9 17 4 12"/>} className="w-5 h-5" />;
-        const RefreshIcon = () => <Icon d={<><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></>} className="w-5 h-5" />;
-        const InfoIcon = () => <Icon d={<><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></>} className="w-5 h-5" />;
+        const CalculatorIcon = () => <Icon d={<><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z" /><line x1="8" y1="14" x2="16" y2="14" /><line x1="8" y1="18" x2="16" y2="18" /></>} className="w-5 h-5" />;
+        const CheckIcon = () => <Icon d={<polyline points="20 6 9 17 4 12" />} className="w-5 h-5" />;
+        const RefreshIcon = () => <Icon d={<><path d="M23 4v6h-6" /><path d="M1 20v-6h6" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></>} className="w-5 h-5" />;
+        const InfoIcon = () => <Icon d={<><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></>} className="w-5 h-5" />;
 
         // --- רכיב עזר למשוואות ---
         const MathEq = ({ children }) => <span className="font-mono font-bold ltr-override text-lg">{children}</span>;
@@ -108,7 +131,7 @@
             const [showSquares, setShowSquares] = useState(true);
 
             // חישוב היתר
-            const c = Math.sqrt(a*a + b*b);
+            const c = Math.sqrt(a * a + b * b);
 
             // קנה מידה לציור
             const scale = 35;
@@ -119,7 +142,7 @@
             // C = (0,0) לוקאלית (יחסית לאופסט)
             // A = (0, -a) בגלל ש-Y הפוך ב-SVG
             // B = (b, 0)
-            
+
             const pC = { x: offsetX, y: offsetY };
             const pA = { x: offsetX, y: offsetY - a * scale };
             const pB = { x: offsetX + b * scale, y: offsetY };
@@ -132,13 +155,13 @@
 
             return (
                 <div className="flex flex-col lg:flex-row h-full overflow-hidden">
-                    
+
                     {/* אזור הציור */}
                     <div className="flex-grow bg-white relative overflow-hidden flex justify-center items-center p-4">
                         <svg width="100%" height="100%" viewBox="0 0 500 500" className="max-w-[600px] max-h-[600px]">
                             <defs>
                                 <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f0fdf4" strokeWidth="1"/>
+                                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f0fdf4" strokeWidth="1" />
                                 </pattern>
                             </defs>
                             <rect width="100%" height="100%" fill="url(#grid)" />
@@ -148,28 +171,28 @@
                                 <g>
                                     {/* ריבוע על צלע a (האדום) */}
                                     <g>
-                                        <rect x={pA.x - a*scale} y={pA.y} width={a*scale} height={a*scale} fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" strokeWidth="2" />
-                                        <text x={pA.x - a*scale/2} y={pA.y + a*scale/2} textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold fill-red-700 ltr-override fade-in">
-                                            {a}² = {a*a}
+                                        <rect x={pA.x - a * scale} y={pA.y} width={a * scale} height={a * scale} fill="rgba(239, 68, 68, 0.15)" stroke="#ef4444" strokeWidth="2" />
+                                        <text x={pA.x - a * scale / 2} y={pA.y + a * scale / 2} textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold fill-red-700 ltr-override fade-in">
+                                            {a}² = {a * a}
                                         </text>
                                     </g>
-                                    
+
                                     {/* ריבוע על צלע b (הכחול) */}
                                     <g>
-                                        <rect x={pC.x} y={pC.y} width={b*scale} height={b*scale} fill="rgba(59, 130, 246, 0.15)" stroke="#3b82f6" strokeWidth="2" />
-                                        <text x={pC.x + b*scale/2} y={pC.y + b*scale/2} textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold fill-blue-700 ltr-override fade-in">
-                                            {b}² = {b*b}
+                                        <rect x={pC.x} y={pC.y} width={b * scale} height={b * scale} fill="rgba(59, 130, 246, 0.15)" stroke="#3b82f6" strokeWidth="2" />
+                                        <text x={pC.x + b * scale / 2} y={pC.y + b * scale / 2} textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold fill-blue-700 ltr-override fade-in">
+                                            {b}² = {b * b}
                                         </text>
                                     </g>
-                                    
+
                                     {/* ריבוע על היתר c (הירוק) */}
                                     <g transform={`translate(${pA.x}, ${pA.y}) rotate(${rotationAngle})`}>
                                         {/* הריבוע נבנה "למעלה" (negative Y) יחסית לקו המסתובב */}
-                                        <rect x="0" y={-c*scale} width={c*scale} height={c*scale} fill="rgba(34, 197, 94, 0.15)" stroke="#22c55e" strokeWidth="2" />
+                                        <rect x="0" y={-c * scale} width={c * scale} height={c * scale} fill="rgba(34, 197, 94, 0.15)" stroke="#22c55e" strokeWidth="2" />
                                         {/* טקסט בתוך הריבוע המסובב - צריך לסובב חזרה כדי שיהיה קריא? או להשאיר ישר בתוך הסיבוב? עדיף ישר. */}
-                                        <g transform={`translate(${c*scale/2}, ${-c*scale/2}) rotate(${-rotationAngle})`}>
+                                        <g transform={`translate(${c * scale / 2}, ${-c * scale / 2}) rotate(${-rotationAngle})`}>
                                             <text x="0" y="0" textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold fill-green-700 ltr-override fade-in">
-                                                c² = {c%1===0 ? c*c : (c*c).toFixed(1)}
+                                                c² = {c % 1 === 0 ? c * c : (c * c).toFixed(1)}
                                             </text>
                                         </g>
                                     </g>
@@ -178,24 +201,24 @@
 
                             {/* המשולש עצמו (מעל הריבועים) */}
                             <path d={`M ${pC.x} ${pC.y} L ${pA.x} ${pA.y} L ${pB.x} ${pB.y} Z`} fill="rgba(255,255,255,0.9)" stroke="#374151" strokeWidth="3" />
-                            
+
                             {/* סימון זווית ישרה */}
-                            <path d={`M ${pC.x} ${pC.y-15} L ${pC.x+15} ${pC.y-15} L ${pC.x+15} ${pC.y}`} fill="none" stroke="#374151" strokeWidth="2" />
-                            <circle cx={pC.x+6} cy={pC.y-6} r="1" fill="#374151" />
+                            <path d={`M ${pC.x} ${pC.y - 15} L ${pC.x + 15} ${pC.y - 15} L ${pC.x + 15} ${pC.y}`} fill="none" stroke="#374151" strokeWidth="2" />
+                            <circle cx={pC.x + 6} cy={pC.y - 6} r="1" fill="#374151" />
 
                             {/* תוויות אורכי צלעות */}
-                            <text x={pC.x - 15} y={(pC.y + pA.y)/2} className="text-sm font-bold fill-red-600" textAnchor="middle">a={a}</text>
-                            <text x={(pC.x + pB.x)/2} y={pC.y + 20} className="text-sm font-bold fill-blue-600" textAnchor="middle">b={b}</text>
+                            <text x={pC.x - 15} y={(pC.y + pA.y) / 2} className="text-sm font-bold fill-red-600" textAnchor="middle">a={a}</text>
+                            <text x={(pC.x + pB.x) / 2} y={pC.y + 20} className="text-sm font-bold fill-blue-600" textAnchor="middle">b={b}</text>
                             {/* תווית c קצת יותר מתוחכמת באמצע היתר */}
-                            <g transform={`translate(${(pA.x + pB.x)/2}, ${(pA.y + pB.y)/2})`}>
+                            <g transform={`translate(${(pA.x + pB.x) / 2}, ${(pA.y + pB.y) / 2})`}>
                                 <rect x="-22" y="-12" width="44" height="24" rx="4" fill="rgba(255,255,255,0.9)" />
-                                <text x="0" y="5" className="text-sm font-bold fill-green-600" textAnchor="middle">c={c%1===0 ? c : c.toFixed(2)}</text>
+                                <text x="0" y="5" className="text-sm font-bold fill-green-600" textAnchor="middle">c={c % 1 === 0 ? c : c.toFixed(2)}</text>
                             </g>
 
                         </svg>
 
                         <div className="absolute bottom-4 right-4 flex gap-2">
-                            <button 
+                            <button
                                 onClick={() => setShowSquares(!showSquares)}
                                 className={`px-3 py-1 text-xs rounded-full border shadow-sm transition-all ${showSquares ? 'bg-green-100 border-green-300 text-green-800' : 'bg-white border-gray-300 text-gray-500'}`}
                             >
@@ -208,7 +231,7 @@
                     <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-r border-green-100 p-6 flex flex-col shadow-xl z-10 overflow-y-auto">
                         <div className="mb-6">
                             <h2 className="text-2xl font-bold text-slate-800 mb-2 text-center">הנוסחה והמשמעות</h2>
-                            
+
                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-inner mb-4 text-center">
                                 <div className="text-3xl ltr-override text-slate-700 font-black tracking-wider">
                                     <span className="text-red-500">a²</span> + <span className="text-blue-500">b²</span> = <span className="text-green-600">c²</span>
@@ -219,7 +242,7 @@
                                 <InfoIcon className="shrink-0 text-yellow-600 mt-0.5" />
                                 <div>
                                     <strong>למה בריבוע?</strong> כי <span className="font-mono font-bold" dir="ltr">a²</span> זה בדיוק כמו לחשב שטח של ריבוע שאורך הצלע שלו הוא <span className="font-mono font-bold">a</span>.
-                                    <br/>
+                                    <br />
                                     המשפט אומר: סכום השטחים האדום והכחול שווה בדיוק לשטח הירוק!
                                 </div>
                             </div>
@@ -245,9 +268,9 @@
                                 <h3 className="font-bold text-green-800 mb-2 border-b border-green-200 pb-1 text-center">החישוב בפועל</h3>
                                 <div className="space-y-2 ltr-override text-lg text-center">
                                     <div className="text-slate-500 text-sm">סכום שטחי הניצבים:</div>
-                                    <div className="font-bold"><span className="text-red-600">{a}²</span> + <span className="text-blue-600">{b}²</span> = {a*a} + {b*b} = <span className="text-green-700 text-xl">{a*a + b*b}</span></div>
+                                    <div className="font-bold"><span className="text-red-600">{a}²</span> + <span className="text-blue-600">{b}²</span> = {a * a} + {b * b} = <span className="text-green-700 text-xl">{a * a + b * b}</span></div>
                                     <div className="text-slate-500 text-sm mt-2">אורך היתר (שורש השטח):</div>
-                                    <div className="font-bold text-green-700">c = √{a*a + b*b} = <span className="bg-green-100 px-2 rounded">{c%1===0 ? c : c.toFixed(2)}</span></div>
+                                    <div className="font-bold text-green-700">c = √{a * a + b * b} = <span className="bg-green-100 px-2 rounded">{c % 1 === 0 ? c : c.toFixed(2)}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -260,14 +283,14 @@
         const PracticeTab = () => {
             const [problem, setProblem] = useState(null);
             const [userAnswer, setUserAnswer] = useState('');
-            const [feedback, setFeedback] = useState(null); 
+            const [feedback, setFeedback] = useState(null);
             const [showSolution, setShowSolution] = useState(false);
 
             const generateProblem = () => {
-                const types = ['find_c', 'find_a']; 
+                const types = ['find_c', 'find_a'];
                 const type = types[Math.floor(Math.random() * types.length)];
-                
-                const triples = [[3,4,5], [5,12,13], [8,15,17], [6,8,10], [9,12,15]];
+
+                const triples = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [6, 8, 10], [9, 12, 15]];
                 const triple = triples[Math.floor(Math.random() * triples.length)];
                 const [leg1, leg2, hyp] = triple;
 
@@ -276,7 +299,7 @@
                 } else {
                     setProblem({ type, a: null, b: leg2, c: hyp, answer: leg1, missing: 'a' });
                 }
-                
+
                 setUserAnswer('');
                 setFeedback(null);
                 setShowSolution(false);
@@ -303,9 +326,9 @@
                     <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
                         <div className="bg-slate-800 text-white p-4 text-center font-bold text-lg flex justify-between items-center">
                             <span>תרגול משולב</span>
-                            <button onClick={generateProblem} className="bg-slate-700 p-2 rounded-full hover:bg-slate-600 transition"><RefreshIcon/></button>
+                            <button onClick={generateProblem} className="bg-slate-700 p-2 rounded-full hover:bg-slate-600 transition"><RefreshIcon /></button>
                         </div>
-                        
+
                         <div className="p-8 text-center">
                             <h3 className="text-xl font-bold text-slate-700 mb-6">
                                 {problem.type === 'find_c' ? 'מצאו את אורך היתר (c)' : 'מצאו את אורך הניצב החסר (a)'}
@@ -315,7 +338,7 @@
                                 <svg width="200" height="150" viewBox="0 0 200 150">
                                     <path d="M 40 120 L 40 20 L 160 120 Z" fill="rgba(241, 245, 249, 0.5)" stroke="#334155" strokeWidth="3" />
                                     <path d="M 40 105 L 55 105 L 55 120" fill="none" stroke="#334155" strokeWidth="2" />
-                                    
+
                                     <text x="25" y="70" className="font-bold fill-red-600 font-mono text-lg">
                                         {problem.type === 'find_c' ? problem.a : '?'}
                                     </text>
@@ -329,10 +352,10 @@
                             </div>
 
                             <div className="flex gap-2 justify-center max-w-xs mx-auto mb-4">
-                                <input 
-                                    type="number" 
-                                    value={userAnswer} 
-                                    onChange={(e) => setUserAnswer(e.target.value)} 
+                                <input
+                                    type="number"
+                                    value={userAnswer}
+                                    onChange={(e) => setUserAnswer(e.target.value)}
                                     placeholder="התשובה..."
                                     className="border-2 border-slate-300 rounded-lg p-3 w-full text-center text-xl font-bold focus:border-green-500 focus:outline-none"
                                 />
@@ -366,16 +389,16 @@
                                             <p className="font-bold text-slate-700 mb-2 dir-rtl">כדי למצוא יתר, מחברים את הריבועים:</p>
                                             <p>c² = a² + b²</p>
                                             <p>c² = {problem.a}² + {problem.b}²</p>
-                                            <p>c² = {problem.a**2} + {problem.b**2} = {problem.a**2 + problem.b**2}</p>
-                                            <p className="font-bold text-green-600">c = √{problem.a**2 + problem.b**2} = {problem.answer}</p>
+                                            <p>c² = {problem.a ** 2} + {problem.b ** 2} = {problem.a ** 2 + problem.b ** 2}</p>
+                                            <p className="font-bold text-green-600">c = √{problem.a ** 2 + problem.b ** 2} = {problem.answer}</p>
                                         </>
                                     ) : (
                                         <>
                                             <p className="font-bold text-slate-700 mb-2 dir-rtl">כדי למצוא ניצב, מחסירים מהיתר:</p>
                                             <p>a² = c² - b²</p>
                                             <p>a² = {problem.c}² - {problem.b}²</p>
-                                            <p>a² = {problem.c**2} - {problem.b**2} = {problem.c**2 - problem.b**2}</p>
-                                            <p className="font-bold text-red-600">a = √{problem.c**2 - problem.b**2} = {problem.answer}</p>
+                                            <p>a² = {problem.c ** 2} - {problem.b ** 2} = {problem.c ** 2 - problem.b ** 2}</p>
+                                            <p className="font-bold text-red-600">a = √{problem.c ** 2 - problem.b ** 2} = {problem.answer}</p>
                                         </>
                                     )}
                                 </div>
@@ -401,17 +424,17 @@
                             <h1 className="font-bold text-xl text-green-900">משפט פיתגורס</h1>
                         </div>
                         <div className="flex bg-green-50 p-1 rounded-lg">
-                            <button 
+                            <button
                                 onClick={() => setActiveTab('explore')}
                                 className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'explore' ? 'bg-white text-green-700 shadow-sm' : 'text-green-600 hover:bg-green-100'}`}
                             >
-                                <TriangleIcon className="w-4 h-4"/> מעבדה
+                                <TriangleIcon className="w-4 h-4" /> מעבדה
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setActiveTab('practice')}
                                 className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'practice' ? 'bg-white text-green-700 shadow-sm' : 'text-green-600 hover:bg-green-100'}`}
                             >
-                                <CalculatorIcon className="w-4 h-4"/> תרגול
+                                <CalculatorIcon className="w-4 h-4" /> תרגול
                             </button>
                         </div>
                     </header>
@@ -428,4 +451,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>
