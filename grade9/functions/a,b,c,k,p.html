@@ -1,6 +1,45 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+    <script>
+    // --- הגדרות ---
+    const SESSION_KEY = 'access_grade9';
+    const LOGIN_PAGE = '../index.html';
+    const TIMEOUT_MINUTES = 15;
+
+    // 1. בדיקת כניסה (הגנה מקישורים ישירים)
+    if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+        window.location.href = LOGIN_PAGE;
+        throw new Error("Access Denied");
+    }
+
+    // 2. מנגנון ניתוק אוטומטי (15 דקות)
+    let inactivityTimer;
+    function resetTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            sessionStorage.removeItem(SESSION_KEY); // מחיקת האישור
+            window.location.href = LOGIN_PAGE; // העפה לדף הבית
+        }, TIMEOUT_MINUTES * 60 * 1000);
+    }
+    
+    // איפוס הטיימר בכל פעולה של המשתמש
+    window.onload = resetTimer;
+    document.onmousemove = resetTimer;
+    document.onkeypress = resetTimer;
+    document.onclick = resetTimer;
+    document.ontouchstart = resetTimer;
+
+    // 3. חסימת F12 ומקש ימני
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', event => {
+        if (event.key === 'F12' || 
+            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) || 
+            (event.ctrlKey && event.key === 'u')) {
+            event.preventDefault();
+        }
+    });
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>המעבדה המלאה לפרבולות</title>

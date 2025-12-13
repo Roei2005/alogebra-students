@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+    <script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', event => {
+        if (event.key === 'F12' || 
+            (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J')) || 
+            (event.ctrlKey && event.key === 'u')) {
+            event.preventDefault();
+        }
+    });
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>אלוגברה - כיתה ח'</title>
