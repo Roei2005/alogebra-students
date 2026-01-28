@@ -516,7 +516,7 @@
             // מאגר שאלות מקיף
             const questions = [
                 { q: "כמה הם 50% מתוך 80?", a: 40, opts: [20, 40, 60, 80], exp: <div className="text-lg">50% זה בדיוק חצי.<br/>חצי מ-80 הם <span className="font-bold">40</span>.</div> },
-                { q: "איך כותבים 1/4 באחוזים?", a: 25, opts: [20, 25, 40, 50], exp: <div className="text-lg">רבע מהשלם (100) הם 25.<br/>לכן התשובה היא <span className="font-bold">25%</span>.</div> },
+                { q: "איך כותבים 1/4 באחוזים?", a: 25, suffix: '%', opts: [20, 25, 40, 50], exp: <div className="text-lg">רבע מהשלם (100) הם 25.<br/>לכן התשובה היא <span className="font-bold">25%</span>.</div> },
                 { q: "כמה הם 10% מתוך 350?", a: 35, opts: [3.5, 35, 350, 30], exp: <div className="text-lg">כדי למצוא 10%, מורידים את האפס האחרון.<br/>350 הופך ל-<span className="font-bold">35</span>.</div> },
                 { q: "כמה הם 1% מתוך 200?", a: 2, opts: [20, 2, 0.2, 1], exp: <div className="text-lg">1% אומר לחלק ב-100.<br/>200 לחלק ל-100 שווה <span className="font-bold">2</span>.</div> },
                 { q: "חולצה עולה 100 ₪. יש 30% הנחה. מה המחיר הסופי?", a: 70, opts: [30, 70, 130, 60], exp: <div className="flex flex-col items-center gap-2" dir="ltr"><span>30% of 100 = 30</span><span>100 - 30 = <span className="font-bold">70</span></span></div> },
@@ -525,12 +525,12 @@
                 { q: "כמה הם 200% מתוך 6?", a: 12, opts: [6, 12, 60, 3], exp: <div className="text-lg">200% זה פי 2.<br/>6 כפול 2 שווה <span className="font-bold">12</span>.</div> },
                 { q: "השתמשו בטריק: 4% מתוך 25?", a: 1, opts: [1, 4, 10, 25], exp: <div className="text-lg">נהפוך את זה: 25% מתוך 4.<br/>רבע מ-4 זה <span className="font-bold">1</span>.</div> },
                 { q: "מוצר עלה 50 ₪ והתייקר ב-10%. כמה הוא עולה עכשיו?", a: 55, opts: [50, 55, 60, 45], exp: <div className="flex flex-col items-center gap-2" dir="ltr"><span>10% of 50 = 5</span><span>50 + 5 = <span className="font-bold">55</span></span></div> },
-                { q: "כמה הם 3/4 באחוזים?", a: 75, opts: [25, 50, 75, 80], exp: <div className="text-lg">רבע זה 25%, אז שלושה רבעים זה 25 כפול 3,<br/>כלומר <span className="font-bold">75%</span>.</div> },
-                { q: "כמה הם 0.5 באחוזים?", a: 50, opts: [5, 50, 0.5, 500], exp: <div className="text-lg">0.5 זה חצי, וחצי זה <span className="font-bold">50%</span>.</div> },
+                { q: "כמה הם 3/4 באחוזים?", a: 75, suffix: '%', opts: [25, 50, 75, 80], exp: <div className="text-lg">רבע זה 25%, אז שלושה רבעים זה 25 כפול 3,<br/>כלומר <span className="font-bold">75%</span>.</div> },
+                { q: "כמה הם 0.5 באחוזים?", a: 50, suffix: '%', opts: [5, 50, 0.5, 500], exp: <div className="text-lg">0.5 זה חצי, וחצי זה <span className="font-bold">50%</span>.</div> },
                 { q: "כמה הם 100% מתוך 99?", a: 99, opts: [1, 99, 100, 198], exp: <div className="text-lg">100% זה הכל. המספר נשאר אותו דבר: <span className="font-bold">99</span>.</div> },
                 { q: "כמה הם 10% מתוך 55?", a: 5.5, opts: [5, 5.5, 0.55, 550], exp: <div className="text-lg">מזיזים את הנקודה שמאלה פעם אחת.<br/>55 הופך ל-<span className="font-bold">5.5</span>.</div> },
                 { q: "כמה הם 25% מתוך 40?", a: 10, opts: [5, 10, 20, 25], exp: <div className="text-lg">25% זה רבע. לחלק ב-4.<br/>40 לחלק ל-4 זה <span className="font-bold">10</span>.</div> },
-                { q: "הנחה של 50% ואז עוד 50% הנחה על היתרה. כמה נשאר לשלם?", a: 25, opts: [0, 25, 50, 75], exp: <div className="text-lg">אחרי ההנחה הראשונה נשאר 50%.<br/>חצי מ-50% זה 25%. נשאר לשלם <span className="font-bold">25%</span> מהמחיר המקורי.</div> },
+                { q: "הנחה של 50% ואז עוד 50% הנחה על היתרה. כמה נשאר לשלם?", a: 25, suffix: '%', opts: [0, 25, 50, 75], exp: <div className="text-lg">אחרי ההנחה הראשונה נשאר 50%.<br/>חצי מ-50% זה 25%. נשאר לשלם <span className="font-bold">25%</span> מהמחיר המקורי.</div> },
                 { q: "כמה הם 150% מתוך 10?", a: 15, opts: [10, 15, 20, 150], exp: <div className="text-lg">100% זה 10.<br/>עוד 50% (חצי) זה 5.<br/>סה"כ 10 ועוד 5 שווה <span className="font-bold">15</span>.</div> },
                 { q: "כמה הם 0% מתוך 1000?", a: 0, opts: [0, 1, 10, 1000], exp: <div className="text-lg">0% זה כלום. התשובה היא <span className="font-bold">0</span>.</div> },
                 { q: "כמה הם 20% מתוך 20?", a: 4, opts: [2, 4, 10, 20], exp: <div className="flex items-center gap-2 text-xl font-bold" dir="ltr"><Fraction n="20" d="100"/> × 20 = 4</div> },
@@ -589,7 +589,7 @@
                                             }
                                         `}
                                     >
-                                        {opt}%?
+                                        {opt}{current.suffix || ''}
                                     </button>
                                 ))}
                             </div>
@@ -639,7 +639,8 @@
                                         מאסטר האחוזים
                                     </h1>
                                 </div>
-                                <a href="../index.html" className="hidden md:flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors bg-slate-100 px-4 py-2 rounded-xl">
+                                {/* כאן בוצע התיקון בקישור: href="../index8.html" */}
+                                <a href="../index8.html" className="hidden md:flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors bg-slate-100 px-4 py-2 rounded-xl">
                                     חזרה ללובי
                                 </a>
                             </div>
