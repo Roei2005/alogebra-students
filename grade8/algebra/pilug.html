@@ -5,7 +5,8 @@
     <script>
         // --- הגדרות אבטחה ---
         const SESSION_KEY = 'access_grade8';
-        const LOGIN_PAGE = '../index8.html'; // נתיב יחסי לתיקייה הראשית
+        // עדכון קריטי: הפניה מדוייקת לשם הקובץ שלך
+        const LOGIN_PAGE = '../index8.html'; 
         const TIMEOUT_MINUTES = 30;
 
         // --- תיקון לשגיאת Redirect בסביבת תצוגה ---
@@ -167,6 +168,7 @@
               
               {/* כפתור חזרה ללובי (תוספת לאתר) */}
               <div className="absolute top-4 left-4 z-50">
+                 {/* שימו לב: הפניה מפורשת ל-index8.html כדי למנוע 404 */}
                  <a href="../index8.html" className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 bg-white/80 p-2 px-4 rounded-xl shadow-sm border border-slate-200 font-bold transition-all">
                     <Home size={20} /> <span className="hidden md:inline">חזרה ללובי</span>
                  </a>
