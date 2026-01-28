@@ -3,51 +3,79 @@
 
 <head>
     <script>
-        // --- הגדרות ---
-        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
-        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        // --- הגדרות אבטחה וחיבור ---
+        const SESSION_KEY = 'access_grade8';
+        const LOGIN_PAGE = '../index8.html';
         const TIMEOUT_MINUTES = 30;
 
-        // 1. בדיקת כניסה
-        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-            window.location.replace(LOGIN_PAGE);
+        // --- מנגנון הפניה בטוחה ---
+        function safeRedirect(url) {
+            try {
+                const isPreview = window.location.protocol === 'blob:' || 
+                                window.location.hostname === 'localhost' || 
+                                window.location.hostname.includes('googleusercontent');
+                if (isPreview) {
+                    console.warn('Preview mode detected: Redirect blocked.');
+                    return;
+                }
+                window.location.replace(url);
+            } catch (e) {
+                console.error('Redirect failed:', e);
+            }
         }
 
-        // 2. ניתוק אוטומטי
+        // פונקציה גלובלית לטיפול בלחיצה על הלובי
+        function handleLobbyClick(e) {
+            const isPreview = window.location.protocol === 'blob:' || 
+                            window.location.hostname === 'localhost' || 
+                            window.location.hostname.includes('googleusercontent');
+            if (isPreview) {
+                e.preventDefault();
+                alert("מצב תצוגה מקדימה: המעבר ללובי חסום כדי למנוע שגיאה. באתר האמיתי זה יעבוד.");
+            }
+        }
+
+        // בדיקת כניסה וניתוק אוטומטי
+        try {
+            if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+                const isPreview = window.location.protocol === 'blob:' || window.location.hostname.includes('googleusercontent');
+                if (isPreview) {
+                    sessionStorage.setItem(SESSION_KEY, 'true');
+                } else {
+                    safeRedirect(LOGIN_PAGE);
+                }
+            }
+        } catch (e) { console.error(e); }
+
         let inactivityTimer;
         function resetTimer() {
             clearTimeout(inactivityTimer);
             inactivityTimer = setTimeout(() => {
-                sessionStorage.removeItem(SESSION_KEY);
-                window.location.replace(LOGIN_PAGE);
+                try {
+                    sessionStorage.removeItem(SESSION_KEY);
+                    safeRedirect(LOGIN_PAGE);
+                } catch (e) {}
             }, TIMEOUT_MINUTES * 60 * 1000);
         }
+        ['load', 'mousemove', 'keypress', 'click', 'touchstart'].forEach(ev => 
+            window.addEventListener(ev, resetTimer)
+        );
 
-        window.addEventListener('load', resetTimer);
-        document.addEventListener('mousemove', resetTimer);
-        document.addEventListener('keypress', resetTimer);
-        document.addEventListener('click', resetTimer);
-        document.addEventListener('touchstart', resetTimer);
-
-        // 3. חסימת F12
+        // חסימת מקשים
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.addEventListener('keydown', event => {
-            if (event.key === 'F12' ||
-                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
-                (event.ctrlKey && event.key === 'u')) {
+            if (event.key === 'F12' || (event.ctrlKey && (event.key === 'u' || event.key === 'I'))) {
                 event.preventDefault();
             }
         });
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>משוואות בארבעה שלבים</title>
 
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <!-- Tailwind CSS -->
@@ -60,6 +88,7 @@
         body {
             font-family: 'Rubik', sans-serif;
             background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .math-term {
@@ -73,34 +102,15 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Custom scrollbar for better UX */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 
@@ -197,10 +207,10 @@
                             <h4 className="font-bold text-green-700 mb-2 text-xl">טיפ חשוב: העברת איקסים</h4>
                             <p>אפשר להעביר איקסים מאגף לאגף בדיוק כמו מספרים!</p>
                             <p>אם יש לנו <span className="math-term text-green-600 font-bold">2x</span> בצד ימין, נעביר אותו לצד שמאל כ-<span class="math-term text-red-500 font-bold">-2x</span>.</p>
-                            <hr class="my-3 border-gray-200" />
+                            <hr className="my-3 border-gray-200" />
                             <h4 className="font-bold text-green-700 mb-2 text-xl">איך מחברים איקסים?</h4>
                             <p>פשוט מאוד: מחברים את המספרים (המקדמים) וה-X נשאר.</p>
-                            <p class="text-center bg-gray-100 p-2 rounded mt-2 font-mono" dir="ltr">3x + 2x = (3+2)x = 5x</p>
+                            <p className="text-center bg-gray-100 p-2 rounded mt-2 font-mono" dir="ltr">3x + 2x = (3+2)x = 5x</p>
                         </div>
                         <div className="bg-green-50 p-6 rounded-2xl">
                             <h4 className="font-bold mb-4 border-b border-green-200 pb-2 text-green-800">דוגמה לסידור אגפים:</h4>
@@ -295,7 +305,7 @@
                     </div>
                     <div className="p-10">
                         {lesson.content}
-                        <button
+                        <button 
                             onClick={onComplete}
                             className="mt-10 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all transform hover:scale-[1.02] shadow-lg text-xl flex items-center justify-center gap-3"
                         >
@@ -372,9 +382,9 @@
                                 }
 
                                 return (
-                                    <button
-                                        key={idx}
-                                        onClick={() => handleAnswer(idx)}
+                                    <button 
+                                        key={idx} 
+                                        onClick={() => handleAnswer(idx)} 
                                         className={btnClass}
                                         disabled={selectedOption !== null}
                                         dir="ltr"
@@ -396,7 +406,7 @@
                                         <p className="text-blue-800 leading-relaxed text-lg">{question.explanation}</p>
                                     </div>
                                 </div>
-                                <button
+                                <button 
                                     onClick={nextQuestion}
                                     className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex justify-center items-center gap-3 text-xl"
                                 >
@@ -481,7 +491,7 @@
                             {/* אזור רמז */}
                             <div className="mb-6 flex justify-center">
                                 {!hintShown && selectedOption === null ? (
-                                    <button
+                                    <button 
                                         onClick={() => setHintShown(true)}
                                         className="text-yellow-600 font-bold flex items-center gap-2 hover:bg-yellow-50 px-4 py-2 rounded-xl transition-colors"
                                     >
@@ -509,9 +519,9 @@
                                     }
 
                                     return (
-                                        <button
-                                            key={idx}
-                                            onClick={() => handleAnswer(idx)}
+                                        <button 
+                                            key={idx} 
+                                            onClick={() => handleAnswer(idx)} 
                                             className={btnClass}
                                             disabled={selectedOption !== null}
                                             dir="ltr"
@@ -523,25 +533,25 @@
                                     );
                                 })}
                             </div>
-                        </div>
 
-                        {selectedOption !== null && (
-                            <div className="bg-indigo-50 p-8 border-t border-indigo-100 animate-in fade-in">
-                                <div className="flex items-start gap-4">
-                                    <div className="mt-1 p-2 bg-indigo-200 rounded-full text-indigo-800"><IconBook /></div>
-                                    <div>
-                                        <h4 className="font-bold text-indigo-900 text-xl mb-2">הסבר מלא:</h4>
-                                        <p className="text-indigo-800 leading-relaxed text-lg">{question.explanation}</p>
+                            {selectedOption !== null && (
+                                <div className="bg-indigo-50 p-8 border-t border-indigo-100 animate-in fade-in mt-6 rounded-xl">
+                                    <div className="flex items-start gap-4">
+                                        <div className="mt-1 p-2 bg-indigo-200 rounded-full text-indigo-800"><IconBook /></div>
+                                        <div>
+                                            <h4 className="font-bold text-indigo-900 text-xl mb-2">הסבר הפתרון:</h4>
+                                            <p className="text-indigo-800 leading-relaxed text-lg">{question.explanation}</p>
+                                        </div>
                                     </div>
+                                    <button 
+                                        onClick={nextQuestion}
+                                        className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex justify-center items-center gap-3 text-xl"
+                                    >
+                                        לשאלה הבאה <IconArrowLeft />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={nextQuestion}
-                                    className="mt-8 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg transition-all flex justify-center items-center gap-3 text-xl"
-                                >
-                                    {currentQIndex < finalQuizQuestions.length - 1 ? "לשאלה הבאה" : "סיום וקבלת ציון"} <IconArrowLeft />
-                                </button>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             );
@@ -576,7 +586,7 @@
                     <div className="max-w-5xl mx-auto px-4 py-12">
                         {/* הוספת כפתור יציאה ללובי */}
                         <div className="absolute top-4 left-4">
-                            <a href="../index.html" className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 font-bold bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
+                            <a href="../index8.html" onClick={handleLobbyClick} className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 font-bold bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
                                 <IconHome /> חזרה ללובי כיתה ח'
                             </a>
                         </div>
@@ -597,13 +607,13 @@
                                         <p className="text-gray-500 mb-8 text-lg">{lesson.subtitle}</p>
 
                                         <div className="flex gap-4">
-                                            <button
+                                            <button 
                                                 onClick={() => startLearning(lesson.id)}
                                                 className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-4 px-4 rounded-2xl flex items-center justify-center gap-2 transition-colors text-lg"
                                             >
                                                 <IconBook /> ללמוד
                                             </button>
-                                            <button
+                                            <button 
                                                 onClick={() => startQuiz(lesson.id)}
                                                 className="flex-1 bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white font-bold py-4 px-4 rounded-2xl flex items-center justify-center gap-2 transition-all text-lg"
                                             >
@@ -617,7 +627,7 @@
 
                         {/* כפתור למבחן המסכם */}
                         <div className="max-w-3xl mx-auto">
-                            <button
+                            <button 
                                 onClick={startFinalTest}
                                 className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black py-6 px-8 rounded-3xl shadow-xl hover:shadow-2xl transition-all transform hover:scale-[1.01] flex items-center justify-center gap-4 text-2xl"
                             >
