@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <script>
+        // --- הגדרות אבטחה ---
+        const SESSION_KEY = 'access_grade8';
+        const LOGIN_PAGE = '../index8.html'; // נתיב יחסי לתיקייה הראשית
+        const TIMEOUT_MINUTES = 30;
+
+        // --- תיקון לשגיאת Redirect בסביבת תצוגה ---
+        function safeRedirect(url) {
+            try {
+                if (window.location.protocol === 'blob:' || window.location.hostname === 'localhost' || window.location.hostname.includes('googleusercontent')) {
+                    console.warn('Preview mode detected: Redirect blocked.');
+                    return;
+                }
+                window.location.replace(url);
+            } catch (e) {
+                console.error('Redirect failed:', e);
+            }
+        }
+
+        // 1. בדיקת כניסה
+        try {
+            if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+                if (window.location.protocol === 'blob:' || window.location.hostname.includes('googleusercontent')) {
+                    sessionStorage.setItem(SESSION_KEY, 'true');
+                } else {
+                    safeRedirect(LOGIN_PAGE);
+                }
+            }
+        } catch (e) { console.error(e); }
+
+        // 2. ניתוק אוטומטי
+        let inactivityTimer;
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                try {
+                    sessionStorage.removeItem(SESSION_KEY);
+                    safeRedirect(LOGIN_PAGE);
+                } catch (e) { console.error(e); }
+            }, TIMEOUT_MINUTES * 60 * 1000);
+        }
+
+        ['load', 'mousemove', 'keypress', 'click', 'touchstart'].forEach(ev =>
+            window.addEventListener(ev, resetTimer)
+        );
+
+        // 3. חסימת F12
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.key === 'F12' || (event.ctrlKey && (event.key === 'u' || event.key === 'I'))) {
+                event.preventDefault();
+            }
+        });
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>חוק הפילוג המורחב - אלוגברה</title>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+        
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        
+        .animate-bounce-short { animation: bounceShort 0.5s infinite; }
+        @keyframes bounceShort { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        
+        .animate-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- אייקונים (החלפת lucide-react לקוד SVG ישיר כדי שיעבוד בדפדפן) ---
+        const IconBase = ({ children, size = 24, className = "" }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+
+        const ArrowRight = (props) => <IconBase {...props}><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></IconBase>;
+        const ArrowLeft = (props) => <IconBase {...props}><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></IconBase>;
+        const Check = (props) => <IconBase {...props}><polyline points="20 6 9 17 4 12"></polyline></IconBase>;
+        const X = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>;
+        const RefreshCw = (props) => <IconBase {...props}><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></IconBase>;
+        const Calculator = (props) => <IconBase {...props}><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></IconBase>;
+        const Star = (props) => <IconBase {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></IconBase>;
+        const ChevronDown = (props) => <IconBase {...props}><polyline points="6 9 12 15 18 9"></polyline></IconBase>;
+        const Play = (props) => <IconBase {...props}><polygon points="5 3 19 12 5 21 5 3"></polygon></IconBase>;
+        const RotateCcw = (props) => <IconBase {...props}><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></IconBase>;
+        const HelpCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></IconBase>;
+        const SkipForward = (props) => <IconBase {...props}><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></IconBase>;
+        const Sparkles = (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></IconBase>;
+        const Home = (props) => <IconBase {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></IconBase>;
+
+        // --- רכיבים כלליים ועיצוב ---
+
+        const Card = ({ children, className = "" }) => (
+          <div className={`bg-white/95 backdrop-blur-md rounded-3xl shadow-xl p-4 md:p-10 border border-white/50 ${className}`}>
+            {children}
+          </div>
+        );
+
+        const Button = ({ onClick, children, variant = "primary", className = "", disabled = false }) => {
+          const baseStyle = "font-bold text-lg py-3 px-6 md:px-8 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 transform active:scale-95 shadow-md hover:shadow-lg touch-manipulation";
+          
+          const variants = {
+            primary: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700",
+            success: "bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700",
+            outline: "bg-white border-2 border-slate-200 text-slate-700 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700",
+            ghost: "bg-transparent text-slate-500 hover:bg-slate-100/50 hover:text-slate-700 shadow-none hover:shadow-none",
+            disabled: "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none transform-none",
+            info: "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+          };
+          
+          return (
+            <button 
+              onClick={disabled ? null : onClick} 
+              className={`${baseStyle} ${disabled ? variants.disabled : variants[variant]} ${className}`}
+              disabled={disabled}
+            >
+              {children}
+            </button>
+          );
+        };
+
+        // --- מסך ראשי ---
+
+        const App = () => {
+          const [step, setStep] = useState(0); // 0:Intro, 1:Tutorial, 2:Quiz, 3:GuidedPractice, 4:FinalPractice
+
+          // הסרגל מופיע רק בהתחלה (0) ובסוף (4)
+          const showNavBar = step === 0 || step === 4;
+
+          return (
+            <div className={`min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 font-sans text-right ${showNavBar ? 'pb-32' : 'pb-8'}`} dir="rtl">
+              
+              {/* כפתור חזרה ללובי (תוספת לאתר) */}
+              <div className="absolute top-4 left-4 z-50">
+                 <a href="../index8.html" className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 bg-white/80 p-2 px-4 rounded-xl shadow-sm border border-slate-200 font-bold transition-all">
+                    <Home size={20} /> <span className="hidden md:inline">חזרה ללובי</span>
+                 </a>
+              </div>
+
+              {/* אלמנטים דקורטיביים ברקע */}
+              <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+                  <div className="absolute top-[-10%] right-[-5%] w-64 h-64 md:w-96 md:h-96 bg-purple-200/30 rounded-full blur-3xl" />
+                  <div className="absolute bottom-[-10%] left-[-5%] w-64 h-64 md:w-96 md:h-96 bg-blue-200/30 rounded-full blur-3xl" />
+              </div>
+
+              <div className="relative z-10 max-w-4xl mx-auto p-3 md:p-8">
+                {/* כותרת עליונה */}
+                <header className="text-center mb-6 md:mb-10 pt-2 md:pt-4">
+                  <div className="inline-block p-1.5 md:p-2 bg-white/50 backdrop-blur-sm rounded-2xl mb-3 border border-white/60 shadow-sm">
+                     <span className="text-indigo-600 font-bold tracking-wider text-xs md:text-sm px-2">שיעור אינטראקטיבי</span>
+                  </div>
+                  <h1 className="text-3xl md:text-6xl font-black text-slate-800 mb-2 md:mb-3 tracking-tight drop-shadow-sm">
+                    מאסטר המשוואות <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-pink-600">🎓</span>
+                  </h1>
+                  <p className="text-lg md:text-xl text-slate-600 font-medium">
+                    הדרך הכי כיפית ללמוד אלגברה
+                  </p>
+                </header>
+
+                {/* תוכן משתנה לפי שלב */}
+                <div className="transition-all duration-500 ease-in-out">
+                    {step === 0 && <Intro onStart={() => setStep(1)} />}
+                    {step === 1 && <Tutorial onComplete={() => setStep(2)} />}
+                    {step === 2 && <Quiz onComplete={() => setStep(3)} />}
+                    {step === 3 && <GuidedPractice onComplete={() => setStep(4)} />}
+                    {step === 4 && <FinalPractice onRestart={() => setStep(0)} />}
+                </div>
+                
+                {/* זכויות יוצרים */}
+                <div className="mt-12 text-center text-slate-400 font-medium text-sm">
+                  כל הזכויות שמורות לאלוגברה © {new Date().getFullYear()}
+                </div>
+                
+              </div>
+              
+              {/* סרגל התקדמות תחתון - מופיע רק בשלב הראשון והאחרון */}
+              {showNavBar && (
+                <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-lg px-6 py-3 md:px-8 md:py-4 rounded-full flex justify-center gap-5 md:gap-10 border border-white/50 shadow-[0_8px_30px_rgba(0,0,0,0.12)] z-50 w-[90%] md:w-auto max-w-md transition-all animate-fade-in-up">
+                  {['פתיחה', 'לומדים', 'בוחן', 'תרגול', 'סיכום'].map((label, idx) => (
+                    <div key={idx} className="flex flex-col items-center gap-1.5 cursor-default relative group flex-1">
+                      <div 
+                        className={`w-3 h-3 md:w-3.5 md:h-3.5 rounded-full transition-all duration-500 shadow-sm ${step >= idx ? 'bg-gradient-to-r from-violet-600 to-indigo-600 scale-125' : 'bg-slate-200'}`}
+                      />
+                      {step >= idx && step < idx + 1 && (
+                          <div className="absolute -top-1 -right-0.5 md:-right-1 w-3 md:w-3.5 h-3 md:h-3.5 bg-violet-400 rounded-full animate-ping opacity-75" />
+                      )}
+                      <span className={`text-[10px] md:text-xs font-bold transition-colors duration-300 whitespace-nowrap ${step === idx ? 'text-violet-700' : 'text-slate-400'}`}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // --- שלב 0: פתיחה ---
+        const Intro = ({ onStart }) => (
+          <Card className="text-center py-12 md:py-20 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500" />
+            
+            <div className="mb-8 md:mb-10 flex justify-center relative">
+              <div className="absolute inset-0 bg-indigo-200 rounded-full blur-2xl opacity-30 transform scale-150" />
+              <div className="bg-gradient-to-br from-white to-slate-50 p-6 md:p-8 rounded-[2rem] shadow-2xl border border-white relative animate-float">
+                <Calculator size={60} className="text-indigo-600 drop-shadow-lg" />
+              </div>
+            </div>
+            
+            <h2 className="text-2xl md:text-4xl font-bold text-slate-800 mb-4 md:mb-6">מוכנים לפצח את הקוד?</h2>
+            
+            <div className="bg-slate-50/80 rounded-2xl p-5 md:p-8 mb-8 md:mb-10 max-w-2xl mx-auto border border-slate-100 shadow-inner">
+                <p className="text-lg md:text-xl text-slate-700 leading-relaxed font-medium">
+                  בשיעור הזה נלמד את הטכניקה הסודית לפתרון משוואות:
+                  <br/><br/>
+                  <span className="flex items-center gap-2 justify-center mb-2"><Check className="text-green-500" size={20}/> פתיחת סוגריים בזהירות</span>
+                  <span className="flex items-center gap-2 justify-center mb-2"><Check className="text-green-500" size={20}/> העברת אגפים וסידור החדר</span>
+                  <span className="flex items-center gap-2 justify-center"><Check className="text-green-500" size={20}/> העלמת ה-X בריבוע וחישוב סופי</span>
+                </p>
+            </div>
+
+            <Button onClick={onStart} className="mx-auto text-lg md:text-xl px-12 md:px-16 py-4 md:py-5 shadow-violet-200 hover:shadow-violet-300 shadow-xl w-full md:w-auto">
+              יאללה, בוא נתחיל! <ArrowLeft className="mr-2" strokeWidth={3} />
+            </Button>
+          </Card>
+        );
+
+        // --- שלב 1: מדריך מונפש מפורט ---
+        const Tutorial = ({ onComplete }) => {
+          const [tutStep, setTutStep] = useState(0);
+          const [animState, setAnimState] = useState('idle'); // idle, highlight, moving, done
+
+          // רכיב עזר להצגת מונח מתמטי בתוך המדריך
+          const Term = ({ val, type, id, highlightIds = [], moveId, crossed }) => {
+            let colorClass = "text-slate-700";
+            if (type === 'x2') colorClass = "text-violet-700 font-black";
+            if (type === 'x') colorClass = "text-blue-600 font-black";
+            if (type === 'num') colorClass = "text-rose-600 font-black";
+            
+            const isHighlighted = highlightIds && highlightIds.includes(id);
+            const isMoving = moveId === id && animState === 'moving';
+
+            // רווח מינימלי בטלפון, רגיל במחשב
+            const baseStyle = `inline-block mx-[1px] md:mx-1.5 transition-all duration-1000 transform ${colorClass}`;
+            
+            let specificStyle = {};
+            if (isHighlighted) {
+              specificStyle = { backgroundColor: '#fef08a', padding: '0 2px md:0 4px', borderRadius: '6px', transform: 'scale(1.15)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' };
+            }
+            if (isMoving) {
+                specificStyle = { 
+                    transform: 'translateY(-60px) scale(1.2) rotate(-5deg)', 
+                    opacity: 0.6,
+                    color: type === 'num' ? '#e11d48' : '#059669',
+                    textShadow: '0 10px 20px rgba(0,0,0,0.2)'
+                };
+            }
+            if (crossed) {
+                specificStyle = { textDecoration: 'line-through', textDecorationColor: '#ef4444', textDecorationThickness: '3px', opacity: 0.4 };
+            }
+
+            return (
+              <span className={baseStyle} style={specificStyle}>
+                {val}
+              </span>
+            );
+          };
+
+          // כל שלב מרונדר עכשיו עם flex-nowrap ו-whitespace-nowrap כדי למנוע ירידת שורה
+          const steps = [
+            { 
+              title: "המשוואה המקורית",
+              text: "זו המשוואה שלנו. נשאיר אותה תמיד למעלה כדי שלא נתבלבל.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-2">(x + 3)(x + 2) = x(x + 1) + 14</div>
+            },
+            // --- פתיחת סוגריים ---
+            {
+              title: "פתיחת סוגריים (שמאל)",
+              text: "נתחיל בצד שמאל: x כפול x זה x בריבוע.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1"><span className="bg-yellow-200 rounded-md px-1 shadow-sm font-bold text-slate-800">x²</span> + ... = ...</div>
+            },
+            {
+              title: "פתיחת סוגריים (שמאל)",
+              text: "ממשיכים: x כפול 2 זה 2x. (פשוט מחברים אותם)",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">x² + <span className="text-blue-600 font-bold bg-blue-50 px-1 rounded-md">2x</span> + ... = ...</div>
+            },
+            {
+              title: "פתיחת סוגריים (שמאל)",
+              text: "עכשיו תור ה-3: 3 כפול x זה 3x.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">x² + 2x + <span className="text-blue-600 font-bold bg-blue-50 px-1 rounded-md">3x</span> + ... = ...</div>
+            },
+            {
+              title: "פתיחת סוגריים (שמאל)",
+              text: "ולבסוף: 3 כפול 2 זה 6.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">x² + 2x + 3x + <span className="text-rose-600 font-bold bg-rose-50 px-1 rounded-md">6</span> = ...</div>
+            },
+            {
+              title: "פתיחת סוגריים (ימין)",
+              text: "עוברים לצד ימין: x כפול x שוב נותן x בריבוע.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">x² + 2x + 3x + 6 = <span className="bg-yellow-200 rounded-md px-1 shadow-sm font-bold text-slate-800">x²</span> + ...</div>
+            },
+            {
+              title: "פתיחת סוגריים (ימין)",
+              text: "ו-x כפול 1 זה פשוט 1x (או רק x). ה-14 נשאר בצד ומחכה.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">x² + 2x + 3x + 6 = x² + <span className="text-blue-600 font-bold bg-blue-50 px-1 rounded-md">x</span> + 14</div>
+            },
+            {
+              title: "סיימנו לפתוח סוגריים!",
+              text: "עכשיו המשוואה פרוסה לפנינו. שימו לב: לא נחבר כלום בינתיים! קודם כל נסדר את החדר.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">x² + 2x + 3x + 6 = x² + x + 14</div>
+            },
+            // --- טיפול ב-X בריבוע ---
+            {
+              title: "שלב קריטי: ה-X בריבוע",
+              text: "יש לנו x² בצד ימין. אנחנו חייבים להעביר אותו שמאלה כדי שיהיה יחד עם החבר שלו. נסמן אותו...",
+              highlightIds: ['right_x2'],
+              render: (hl) => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1"><Term val="x²" type="x2" /> + 2x + 3x + 6 = <Term val="x²" type="x2" id="right_x2" highlightIds={hl} /> + x + 14</div>
+            },
+            {
+              title: "העברת X בריבוע",
+              text: "מעבירים אותו את הגדר (השווה). כשהוא עובר, הפלוס הופך למינוס!",
+              moveId: 'right_x2',
+              render: (hl, mv) => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1"><Term val="x²" type="x2" /> <Term val="- x²" type="x2" id="right_x2" highlightIds={hl} moveId={mv} /> + 2x + 3x + 6 = x + 14</div>
+            },
+            {
+              title: "ביטול ה-X בריבוע",
+              text: "תראו מה קרה בצד שמאל: יש לנו x² פחות x². משהו פחות עצמו זה תמיד אפס! בום! הם מתבטלים.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1"><Term val="x²" type="x2" crossed={true}/> <Term val="- x²" type="x2" crossed={true}/> + 2x + 3x + 6 = x + 14</div>
+            },
+            {
+              title: "מה נשאר?",
+              text: "המשוואה נהייתה פשוטה יותר. עכשיו נמשיך לסדר: כל ה-Xים שמאלה, כל המספרים ימינה.",
+              render: () => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">2x + 3x + 6 = x + 14</div>
+            },
+            // --- העברת איקסים ---
+            {
+              title: "העברת איקסים",
+              text: "יש לנו x בצד ימין. הוא לא שייך לשם. הוא צריך לעבור למשפחה שלו בצד שמאל. נסמן אותו...",
+              highlightIds: ['right_x'],
+              render: (hl) => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">2x + 3x + 6 = <Term val="x" type="x" id="right_x" highlightIds={hl} /> + 14</div>
+            },
+            {
+              title: "העברת איקסים (ביצוע)",
+              text: "הופ! מעבירים אותו שמאלה. זוכרים? הסימן מתהפך. הוא היה פלוס x, עכשיו הוא מינוס x.",
+              moveId: 'right_x',
+              render: (hl, mv) => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">2x + 3x <Term val="- x" type="x" id="right_x" highlightIds={hl} moveId={mv} /> + 6 = 14</div>
+            },
+            // --- העברת מספרים ---
+            {
+              title: "העברת מספרים",
+              text: "עכשיו תור המספרים. המספר 6 נמצא בצד שמאל עם האיקסים. הוא צריך לעבור לצד ימין למשפחה שלו.",
+              highlightIds: ['left_num'],
+              render: (hl) => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">2x + 3x - x + <Term val="6" type="num" id="left_num" highlightIds={hl} /> = 14</div>
+            },
+            {
+              title: "העברת מספרים (ביצוע)",
+              text: "מעבירים את ה-6 ימינה. הסימן מתהפך מפלוס למינוס.",
+              moveId: 'left_num',
+              render: (hl, mv) => <div className="flex flex-nowrap items-center justify-center gap-0.5 md:gap-1">2x + 3x - x = 14 <Term val="- 6" type="num" id="left_num" highlightIds={hl} moveId={mv} /></div>
+            },
+            // --- כינוס איברים ---
+            {
+              title: "כינוס משפחת האיקסים",
+              text: "עכשיו הכל מסודר! בואו נחשב את צד שמאל: 2 ועוד 3 זה 5. פחות ה-x הזה (שזה בעצם 1x) זה 4. סה\"כ 4x.",
+              render: () => <div className="flex flex-col items-center">
+                  <div className="opacity-40 mb-3 font-medium flex flex-nowrap justify-center gap-1 text-[3.5vw] md:text-xl">2x + 3x - 1x = ...</div>
+                  <div className="text-blue-700 bg-blue-100/50 px-6 py-3 rounded-2xl border-2 border-blue-200 shadow-sm flex flex-nowrap justify-center gap-1 font-bold text-[5vw] md:text-4xl">4x = 14 - 6</div>
+              </div>
+            },
+            {
+              title: "כינוס משפחת המספרים",
+              text: "עכשיו נחשב את צד ימין: 14 פחות 6.",
+              render: () => <div className="flex flex-col items-center">
+                  <div className="text-slate-800 flex flex-nowrap justify-center gap-1 font-bold text-[5vw] md:text-4xl">4x = <span className="text-rose-600 bg-rose-50 px-2 rounded-lg">8</span></div>
+              </div>
+            },
+            // --- חילוק וסיום ---
+            {
+              title: "השלב האחרון: חילוק",
+              text: "תמיד בסוף: לוקחים את המספר שלבד (8) ומחלקים אותו במספר שצמוד ל-X (שזה 4).",
+              render: () => <div className="flex flex-col items-center gap-3">
+                  <div className="text-slate-700 font-bold text-[5vw] md:text-3xl">4x = 8</div>
+                  <div className="flex items-center gap-2 text-violet-600 font-medium bg-violet-50 px-3 py-1 rounded-full text-sm">
+                     <span className="text-lg">÷4</span> מחלקים ב-4
+                  </div>
+                  <div className="text-slate-800 border-t-2 border-slate-200 pt-4 mt-2 px-8 font-black text-[6vw] md:text-4xl">x = 8 ÷ 4</div>
+              </div>
+            },
+            {
+              title: "התוצאה הסופית",
+              text: "8 לחלק ל-4 זה 2. מצאנו את ה-X!",
+              render: () => (
+                  <div className="relative">
+                      <div className="absolute inset-0 bg-green-400 blur-xl opacity-20 rounded-full"></div>
+                      <div className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600 border-4 border-emerald-100 bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl relative z-10 transform hover:scale-105 transition-transform duration-300 font-black text-[12vw] md:text-6xl">
+                        x = 2
+                      </div>
+                  </div>
+              )
+            }
+          ];
+
+          // ניהול האנימציה האוטומטית
+          useEffect(() => {
+            setAnimState('idle');
+            const current = steps[tutStep];
+            
+            if (current.moveId || current.highlightIds) {
+                setAnimState('highlight');
+                if (current.moveId) {
+                    const timer1 = setTimeout(() => setAnimState('moving'), 2000); 
+                    const timer2 = setTimeout(() => setAnimState('done'), 3000); 
+                    return () => { clearTimeout(timer1); clearTimeout(timer2); };
+                }
+            }
+          }, [tutStep]);
+
+          const currentStep = steps[tutStep];
+
+          return (
+            <Card className="relative overflow-visible mt-6 md:mt-2">
+              {/* סרגל דביק עם המשוואה המקורית - שורה אחת בלבד */}
+              <div className="absolute -top-8 left-0 right-0 flex justify-center z-20">
+                <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white px-3 py-2 md:px-6 md:py-3 rounded-2xl md:rounded-full shadow-lg border border-slate-600 flex items-center justify-center max-w-[95%] overflow-hidden" dir="ltr">
+                    <span className="font-mono font-bold tracking-wide text-yellow-300 text-center flex flex-nowrap justify-center gap-x-1 whitespace-nowrap text-[3.5vw] md:text-2xl">
+                      (x + 3)(x + 2) = x(x + 1) + 14
+                    </span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 mt-10 md:mt-8">
+                <h2 className="text-xl md:text-2xl font-bold text-slate-800">{currentStep.title}</h2>
+                <div className="bg-slate-100 text-slate-600 px-3 md:px-4 py-1.5 rounded-full text-xs md:text-sm font-bold shadow-inner whitespace-nowrap">
+                    {tutStep + 1} / {steps.length}
+                </div>
+              </div>
+
+              {/* אזור המשוואה המרכזי */}
+              {/* text-[4vw] מבטיח שהטקסט יקטן כדי להתאים לרוחב הנייד. whitespace-nowrap מונע ירידת שורה. */}
+              <div className="bg-gradient-to-b from-white to-slate-50 rounded-2xl p-2 md:p-8 mb-6 md:mb-8 border border-slate-200 min-h-[120px] md:min-h-[220px] flex flex-col items-center justify-center shadow-inner relative overflow-hidden group">
+                <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                <div className="font-mono text-center w-full px-1 md:px-4 py-4 relative z-10 leading-normal flex flex-nowrap whitespace-nowrap justify-center items-center gap-x-0.5 md:gap-x-1 text-[4vw] md:text-4xl" dir="ltr">
+                  {currentStep.render(
+                      animState !== 'idle' ? currentStep.highlightIds || [] : [],
+                      animState === 'moving' ? currentStep.moveId : null
+                  )}
+                </div>
+              </div>
+
+              {/* הסברים */}
+              <div className="bg-indigo-50/80 p-4 md:p-6 rounded-2xl border-l-4 border-r-4 border-indigo-400 mb-6 md:mb-8 shadow-sm">
+                <div className="flex items-start gap-3 md:gap-4">
+                    <div className="bg-white p-1.5 md:p-2 rounded-full shadow-sm mt-0.5 shrink-0 text-indigo-600">
+                        <Sparkles size={20} className="text-indigo-200" stroke="currentColor"/>
+                    </div>
+                    <p className="text-lg md:text-xl leading-relaxed text-slate-800 font-medium">
+                      {currentStep.text}
+                    </p>
+                </div>
+              </div>
+
+              {/* כפתורי ניווט */}
+              <div className="flex justify-between items-center gap-3 md:gap-4">
+                <Button 
+                    onClick={() => setTutStep(prev => Math.max(0, prev - 1))} 
+                    variant="outline"
+                    disabled={tutStep === 0}
+                    className="w-1/3 text-base md:text-lg"
+                >
+                    <ArrowRight size={18} /> <span className="hidden md:inline">חזור</span>
+                </Button>
+
+                {tutStep < steps.length - 1 ? (
+                  <Button onClick={() => setTutStep(prev => prev + 1)} className="w-2/3 text-base md:text-lg">
+                     הבא <ArrowLeft size={20} />
+                  </Button>
+                ) : (
+                  <Button onClick={onComplete} variant="success" className="w-2/3 text-base md:text-lg">
+                    הבנתי, לתרגול! <Check size={20} />
+                  </Button>
+                )}
+              </div>
+            </Card>
+          );
+        };
+
+        // --- שלב 2: שאלת הבנה (אמריקאית) ---
+        const Quiz = ({ onComplete }) => {
+          const [selected, setSelected] = useState(null);
+          const [isCorrect, setIsCorrect] = useState(null);
+
+          const checkAnswer = (ans) => {
+            setSelected(ans);
+            if (ans === 'B') setIsCorrect(true);
+            else setIsCorrect(false);
+          };
+
+          return (
+            <Card>
+              <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
+                  <div className="bg-yellow-100 p-2 rounded-lg text-yellow-600">
+                     <HelpCircle size={24} />
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-bold text-slate-800">רגע חושבים</h2>
+              </div>
+
+              <p className="text-lg md:text-xl mb-8 text-slate-700 leading-relaxed font-medium">
+                נתונה המשוואה: 
+                <br/>
+                <span dir="ltr" className="inline-block mt-3 text-xl md:text-2xl font-mono font-bold bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm text-slate-800">3x + 4 = 10</span>
+                <br /><br/>
+                אנחנו רוצים להעביר את ה-<span className="text-rose-600 font-bold bg-rose-50 px-1 rounded">+4</span> לצד ימין.
+                מה יקרה לו כשהוא יעבור?
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-8">
+                <button 
+                  onClick={() => checkAnswer('A')}
+                  className={`relative p-4 md:p-6 rounded-2xl border-2 text-lg md:text-xl font-medium transition-all text-right group shadow-sm hover:shadow-md ${selected === 'A' ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-rose-400 bg-rose-50 text-rose-800') : 'border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50'}`}
+                >
+                  <div className="flex items-center justify-between">
+                      <div><span className="font-bold ml-2 bg-slate-200 px-2 py-0.5 rounded text-sm text-slate-600 group-hover:bg-white">א</span> יישאר +4</div>
+                      {selected === 'A' && !isCorrect && <X className="text-rose-500"/>}
+                  </div>
+                </button>
+                <button 
+                  onClick={() => checkAnswer('B')}
+                  className={`relative p-4 md:p-6 rounded-2xl border-2 text-lg md:text-xl font-medium transition-all text-right group shadow-sm hover:shadow-md ${selected === 'B' ? (isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-800' : 'border-rose-400 bg-rose-50 text-rose-800') : 'border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50'}`}
+                >
+                   <div className="flex items-center justify-between">
+                      <div><span className="font-bold ml-2 bg-slate-200 px-2 py-0.5 rounded text-sm text-slate-600 group-hover:bg-white">ב</span> יהפוך ל -4</div>
+                      {selected === 'B' && isCorrect && <Check className="text-emerald-600"/>}
+                  </div>
+                </button>
+              </div>
+
+              {selected && (
+                <div className={`p-4 md:p-5 rounded-2xl mb-8 text-center text-lg font-bold animate-fade-in ${isCorrect ? 'bg-emerald-100/80 text-emerald-800 border border-emerald-200' : 'bg-rose-100/80 text-rose-800 border border-rose-200'}`}>
+                  {isCorrect ? "🎯 נכון מאוד! העברת צד = החלפת סימן." : "😅 לא בדיוק. זכור: כשעוברים את הגדר, חייבים לשלם בסימן."}
+                </div>
+              )}
+
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                <Button variant="ghost" onClick={onComplete} className="text-sm text-slate-400 hover:text-slate-600 w-full md:w-auto order-2 md:order-1">
+                   דלג לשלב הבא <SkipForward size={16} className="mr-1" />
+                </Button>
+                <Button onClick={onComplete} disabled={!isCorrect} variant={isCorrect ? "success" : "disabled"} className="w-full md:w-auto min-w-[200px] order-1 md:order-2 shadow-lg">
+                  המשך לתרגול <ArrowLeft />
+                </Button>
+              </div>
+            </Card>
+          );
+        };
+
+        // --- שלב 3: תרגול מודרך ---
+        const GuidedPractice = ({ onComplete }) => {
+          const [showExplanation, setShowExplanation] = useState(false);
+          const [userAns, setUserAns] = useState("");
+          const [feedback, setFeedback] = useState(null);
+
+          const check = () => {
+            if (userAns.trim() === "-1" || userAns.trim() === "- 1") {
+              setFeedback('correct');
+            } else {
+              setFeedback('wrong');
+            }
+          };
+
+          return (
+            <Card>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-slate-800">תורך לנסות! 💪</h2>
+                <Button variant="info" className="text-xs md:text-sm px-3 md:px-4 py-2 h-auto rounded-xl" onClick={() => setShowExplanation(!showExplanation)}>
+                  {showExplanation ? "הסתר עזרה" : "צריך רמז?"}
+                </Button>
+              </div>
+
+              <p className="mb-4 text-lg md:text-xl text-slate-600 font-medium">פתור במחברת וכתוב את התשובה:</p>
+              
+              {/* תיקון גם כאן: גופן דינמי וביטול שבירת שורות */}
+              <div className="bg-slate-800 border-4 border-slate-700 p-4 md:p-8 rounded-2xl text-center mb-8 shadow-2xl transform rotate-1 flex justify-center overflow-hidden">
+                <span className="font-mono text-white font-bold tracking-wider flex flex-nowrap whitespace-nowrap justify-center gap-2 text-[4vw] md:text-5xl" dir="ltr">
+                  (x + 4)(x + 5) = x² + 7x + 18
+                </span>
+              </div>
+
+              {showExplanation && (
+                <div className="bg-yellow-50 p-4 md:p-6 rounded-2xl border-2 border-yellow-200 mb-8 animate-fade-in shadow-sm">
+                  <h4 className="font-bold mb-3 text-yellow-800 text-lg flex items-center gap-2"><Sparkles size={18}/> השלבים לפתרון:</h4>
+                  <ul className="space-y-3 list-disc list-inside text-slate-700 font-medium text-sm md:text-base" dir="rtl">
+                    <li>פתח סוגריים בצד שמאל: <span dir="ltr" className="font-mono bg-white px-2 rounded border border-yellow-100 text-slate-800">x² + 5x + 4x + 20</span></li>
+                    <li>העבר את ה-x² מימין לשמאל (הם יבטלו זה את זה).</li>
+                    <li>העבר את ה-7x שמאלה (יהפוך למינוס).</li>
+                    <li>העבר את ה-20 ימינה (יהפוך למינוס).</li>
+                    <li>כנס איברים וחלק במקדם של x.</li>
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex flex-col items-center gap-8 mb-6 bg-slate-50 p-6 md:p-8 rounded-3xl border border-slate-100">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full">
+                    <div className="flex items-center bg-white rounded-2xl px-6 py-4 border-2 border-indigo-200 shadow-md focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-100 transition-all w-full md:w-auto justify-center">
+                        <span className="text-2xl font-bold text-slate-400 ml-3 font-mono">x = </span>
+                        <input 
+                            type="number" 
+                            value={userAns}
+                            onChange={(e) => setUserAns(e.target.value)}
+                            className="bg-transparent text-3xl font-bold w-24 outline-none ltr text-center text-indigo-600 placeholder-slate-200"
+                            placeholder="?"
+                            dir="ltr"
+                        />
+                    </div>
+                    <Button onClick={check} className="w-full md:w-auto px-10 text-xl shadow-lg shadow-indigo-200">בדיקה</Button>
+                </div>
+                
+                {feedback === 'correct' && (
+                    <div className="text-center animate-bounce-short w-full">
+                    <div className="bg-emerald-100 text-emerald-800 p-4 rounded-xl font-bold text-lg mb-4 border border-emerald-200 shadow-sm">
+                        🎉 כל הכבוד! תשובה נכונה!
+                    </div>
+                    <Button variant="success" onClick={onComplete} className="w-full py-4 text-xl shadow-emerald-200 shadow-lg">המשך לשלב הבא <ArrowLeft/></Button>
+                    </div>
+                )}
+                
+                {feedback === 'wrong' && (
+                    <div className="text-center text-rose-600 bg-rose-50 px-6 py-3 rounded-xl font-bold border border-rose-100 animate-shake w-full">
+                        לא בדיוק... נסה שוב או היעזר ברמז למעלה.
+                    </div>
+                )}
+
+              </div>
+                
+              {/* כפתור דילוג */}
+              <div className="text-center">
+                <Button variant="ghost" onClick={onComplete} className="text-slate-400 text-sm hover:text-slate-600">
+                        דלג לשלב הבא <SkipForward size={16} className="mr-2" />
+                </Button>
+              </div>
+
+            </Card>
+          );
+        };
+
+        // --- שלב 4: תרגול מסכם (כולל מינוסים) ---
+        const FinalPractice = ({ onRestart }) => {
+          const exercises = [
+            {
+              id: 1,
+              q: "(x + 2)(x + 6) = x(x + 3) + 22",
+              hint: "שים לב: ה-x² יתבטל בשני הצדדים.",
+              steps: [
+                { text: "פתיחת סוגריים:", math: "x² + 6x + 2x + 12 = x² + 3x + 22" },
+                { text: "העברת x² שמאלה וביטול:", math: "6x + 2x + 12 = 3x + 22" },
+                { text: "העברת איקסים שמאלה (3x הופך למינוס):", math: "6x + 2x - 3x + 12 = 22" },
+                { text: "העברת מספרים ימינה (12 הופך למינוס):", math: "6x + 2x - 3x = 22 - 12" },
+                { text: "חישוב (6 ועוד 2 זה 8, פחות 3 זה 5):", math: "5x = 10" },
+                { text: "חילוק ב-5:", math: "x = 2" }
+              ],
+              ans: "2"
+            },
+            {
+              id: 2,
+              q: "(x - 2)(x + 4) = x(x + 1) + 4",
+              hint: "זהירות! מינוס 2 כפול איקס זה מינוס 2 איקס.",
+              steps: [
+                  { text: "פתיחת סוגריים (שים לב למינוס 2):", math: "x² + 4x - 2x - 8 = x² + x + 4" },
+                  { text: "ביטול x² והעברת ה-x משמאל (הופך למינוס):", math: "4x - 2x - x - 8 = 4" },
+                  { text: "העברת ה-8 ימינה (הופך לפלוס!):", math: "4x - 2x - x = 4 + 8" },
+                  { text: "חישוב (4 פחות 2 פחות 1 זה 1x):", math: "1x = 12" },
+                  { text: "תשובה סופית:", math: "x = 12" }
+              ],
+              ans: "12"
+            },
+            {
+              id: 3,
+              q: "x(x + 5) = (x - 3)(x - 1) + 11",
+              hint: "מינוס כפול מינוס זה פלוס! (-3 כפול -1 שווה 3).",
+              steps: [],
+              ans: "3",
+              overrideQ: "x(x + 5) = (x - 3)(x - 1) + 24", 
+              overrideSteps: [
+                  { text: "פתיחת סוגריים (מינוס כפול מינוס שווה פלוס 3):", math: "x² + 5x = x² - x - 3x + 3 + 24" },
+                  { text: "ביטול x²:", math: "5x = -x - 3x + 27" },
+                  { text: "העברת איקסים שמאלה (הופכים לפלוס):", math: "5x + x + 3x = 27" },
+                  { text: "חישוב (5 ועוד 1 ועוד 3 זה 9):", math: "9x = 27" },
+                  { text: "חילוק ב-9:", math: "x = 3" }
+              ]
+            }
+          ];
+
+          const [currentExIndex, setCurrentExIndex] = useState(0);
+          const [showSol, setShowSol] = useState(false);
+          const [inp, setInp] = useState("");
+          const [status, setStatus] = useState("idle");
+
+          const current = exercises[currentExIndex];
+          const displayQ = current.overrideQ || current.q;
+          const displaySteps = current.overrideSteps || current.steps;
+
+          const check = () => {
+            if (inp.trim() === current.ans) {
+              setStatus("correct");
+            } else {
+              setStatus("wrong");
+            }
+          };
+
+          const nextExercise = () => {
+            if (currentExIndex < exercises.length - 1) {
+              setCurrentExIndex(prev => prev + 1);
+              setInp("");
+              setStatus("idle");
+              setShowSol(false);
+            } else {
+              setStatus("finished");
+            }
+          };
+
+          if (status === "finished") {
+            return (
+              <Card className="text-center py-16 md:py-24 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-50 to-white z-0 pointer-events-none"></div>
+                <div className="relative z-10">
+                    <div className="mb-8 inline-block relative">
+                        <div className="absolute inset-0 bg-yellow-200 rounded-full blur-xl opacity-60 animate-pulse"></div>
+                        <Star size={100} className="text-yellow-400 fill-yellow-400 relative drop-shadow-lg transform rotate-12" />
+                    </div>
+                    <h2 className="text-4xl md:text-5xl font-black text-slate-800 mb-6 tracking-tight">סיימת את האימון! 🏆</h2>
+                    <p className="text-xl text-slate-600 mb-10 max-w-lg mx-auto leading-relaxed">
+                        אתה עכשיו מאסטר רשמי במשוואות!
+                        <br/>
+                        יודע להתמודד עם סוגריים, מינוסים וכל מה שיזרקו עליך.
+                    </p>
+                    <Button onClick={onRestart} variant="outline" className="mx-auto px-10 py-4 text-lg border-slate-300 hover:bg-slate-50">
+                        התחל מחדש <RotateCcw className="mr-2"/>
+                    </Button>
+                </div>
+              </Card>
+            );
+          }
+
+          return (
+            <Card>
+              <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-4">
+                <h2 className="text-xl md:text-2xl font-bold text-slate-800">תרגיל מסכם {currentExIndex + 1}</h2>
+                <span className="text-xs md:text-sm bg-gradient-to-r from-violet-500 to-indigo-500 text-white px-3 md:px-4 py-1.5 rounded-full font-bold shadow-md whitespace-nowrap">שלב מתקדם</span>
+              </div>
+
+              <div className="bg-white border-2 border-indigo-100 p-4 md:p-8 rounded-3xl text-center mb-10 shadow-lg shadow-indigo-50 flex justify-center">
+                {/* תיקון גם כאן - גופן דינמי וביטול שבירה */}
+                <span className="font-mono text-slate-800 font-bold flex flex-nowrap whitespace-nowrap justify-center gap-1 text-[4vw] md:text-4xl" dir="ltr">
+                  {displayQ}
+                </span>
+              </div>
+
+              <div className="flex flex-col items-center gap-6 mb-6">
+                <div className="flex items-center bg-slate-50 rounded-2xl p-2 border border-slate-200 shadow-inner">
+                     <div className="bg-white px-4 py-3 rounded-xl border border-slate-200 flex items-center gap-3">
+                        <span className="text-2xl font-bold text-slate-500 font-mono">x = </span>
+                        <input 
+                        type="number" 
+                        value={inp}
+                        onChange={(e) => setInp(e.target.value)}
+                        className="bg-transparent text-2xl font-bold w-24 text-center text-indigo-700 outline-none"
+                        placeholder="?"
+                        dir="ltr"
+                        />
+                    </div>
+                </div>
+                
+                {status !== 'correct' && (
+                     <div className="flex flex-col items-center gap-4 w-full max-w-sm mt-2">
+                         <div className="flex gap-4 w-full justify-center">
+                            <Button onClick={check} className="flex-1 shadow-lg shadow-violet-200 text-base md:text-lg">בדוק תשובה</Button>
+                            <Button variant="info" onClick={() => setShowSol(true)} className="flex-1 bg-sky-100 text-sky-700 hover:bg-sky-200 border-sky-200 text-base md:text-lg">
+                                <HelpCircle size={18} className="ml-2" /> פתרון מלא
+                            </Button>
+                         </div>
+                         <Button variant="ghost" onClick={nextExercise} className="text-slate-400 text-sm hover:text-slate-600 w-full mt-2">
+                            דלג לתרגיל הבא <SkipForward size={16} className="mr-2" />
+                         </Button>
+                     </div>
+                )}
+
+                {status === 'correct' && (
+                    <div className="w-full bg-gradient-to-r from-emerald-50 to-teal-50 p-6 rounded-2xl border border-emerald-100 text-center animate-fade-in-up shadow-sm">
+                        <p className="text-emerald-700 font-bold text-2xl mb-4">✨ תשובה נכונה!</p>
+                        <Button variant="success" onClick={nextExercise} className="w-full justify-center py-4 text-lg shadow-emerald-200 shadow-lg">
+                            לשאלה הבאה <ArrowLeft/>
+                        </Button>
+                    </div>
+                )}
+              </div>
+
+              {status === 'wrong' && !showSol && (
+                  <p className="text-center text-rose-500 font-bold mb-4 animate-shake bg-rose-50 inline-block px-4 py-2 rounded-lg mx-auto border border-rose-100">
+                      לא נכון, נסה שוב או צפה בפתרון.
+                  </p>
+              )}
+
+              {/* פתרון מלא */}
+              {showSol && (
+                <div className="bg-slate-50/80 rounded-2xl p-6 border border-slate-200 mt-6 animate-fade-in text-right shadow-inner">
+                  <h3 className="font-bold text-xl mb-6 text-slate-800 border-b border-slate-200 pb-3">דרך הפתרון:</h3>
+                  <div className="space-y-4">
+                    {displaySteps.map((stepObj, idx) => (
+                      <div key={idx} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-2">
+                        <p className="text-slate-600 font-medium">{idx + 1}. {stepObj.text}</p>
+                        <p className="font-mono text-indigo-700 font-bold bg-indigo-50 px-3 py-1 rounded-lg flex flex-nowrap whitespace-nowrap justify-end text-left sm:text-right text-[3.5vw] md:text-xl" dir="ltr">{stepObj.math}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-8 text-center">
+                      <p className="text-slate-500 mb-3 text-sm font-medium">הבנת את הטריק?</p>
+                      <Button onClick={nextExercise} variant="outline" className="w-full md:w-auto px-8 bg-white hover:bg-slate-50">
+                          כן, אפשר להמשיך <ArrowLeft className="mr-2" />
+                      </Button>
+                  </div>
+                </div>
+              )}
+
+            </Card>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
