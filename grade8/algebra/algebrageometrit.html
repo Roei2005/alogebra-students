@@ -3,325 +3,297 @@
 
 <head>
     <script>
-        // --- הגדרות ---
-        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
-        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        // --- הגדרות אבטחה וחיבור ---
+        const SESSION_KEY = 'access_grade8';
+        const LOGIN_PAGE = '../index8.html';
         const TIMEOUT_MINUTES = 30;
 
-        // 1. בדיקת כניסה
-        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-            window.location.replace(LOGIN_PAGE);
+        // --- מנגנון הפניה בטוחה ---
+        function safeRedirect(url) {
+            try {
+                const isPreview = window.location.protocol === 'blob:' || 
+                                window.location.hostname === 'localhost' || 
+                                window.location.hostname.includes('googleusercontent');
+                if (isPreview) {
+                    console.warn('Preview mode detected: Redirect blocked.');
+                    return;
+                }
+                window.location.replace(url);
+            } catch (e) {
+                console.error('Redirect failed:', e);
+            }
         }
 
-        // 2. ניתוק אוטומטי
+        function handleLobbyClick(e) {
+            const isPreview = window.location.protocol === 'blob:' || 
+                            window.location.hostname === 'localhost' || 
+                            window.location.hostname.includes('googleusercontent');
+            if (isPreview) {
+                e.preventDefault();
+                alert("מצב תצוגה מקדימה: המעבר ללובי חסום כדי למנוע שגיאה. באתר האמיתי זה יעבוד.");
+            }
+        }
+
+        // בדיקת כניסה וניתוק אוטומטי
+        try {
+            if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+                const isPreview = window.location.protocol === 'blob:' || window.location.hostname.includes('googleusercontent');
+                if (isPreview) {
+                    sessionStorage.setItem(SESSION_KEY, 'true');
+                } else {
+                    safeRedirect(LOGIN_PAGE);
+                }
+            }
+        } catch (e) { console.error(e); }
+
         let inactivityTimer;
         function resetTimer() {
             clearTimeout(inactivityTimer);
             inactivityTimer = setTimeout(() => {
-                sessionStorage.removeItem(SESSION_KEY);
-                window.location.replace(LOGIN_PAGE);
+                try {
+                    sessionStorage.removeItem(SESSION_KEY);
+                    safeRedirect(LOGIN_PAGE);
+                } catch (e) {}
             }, TIMEOUT_MINUTES * 60 * 1000);
         }
+        ['load', 'mousemove', 'keypress', 'click', 'touchstart'].forEach(ev => 
+            window.addEventListener(ev, resetTimer)
+        );
 
-        window.addEventListener('load', resetTimer);
-        document.addEventListener('mousemove', resetTimer);
-        document.addEventListener('keypress', resetTimer);
-        document.addEventListener('click', resetTimer);
-        document.addEventListener('touchstart', resetTimer);
-
-        // 3. חסימת F12
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.addEventListener('keydown', event => {
-            if (event.key === 'F12' ||
-                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
-                (event.ctrlKey && event.key === 'u')) {
+            if (event.key === 'F12' || (event.ctrlKey && (event.key === 'u' || event.key === 'I'))) {
                 event.preventDefault();
             }
         });
     </script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>שטחים, היקפים ואלגברה - כיתה ח'</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Rubik', sans-serif;
             background-color: #eef2ff;
-            /* Indigo-50 */
             touch-action: manipulation;
         }
-
         .math-text {
             font-family: 'Times New Roman', serif;
             font-style: italic;
             font-weight: bold;
         }
-
-        .tab-btn {
-            transition: all 0.3s ease;
-        }
-
+        .tab-btn { transition: all 0.3s ease; }
         .tab-btn.active {
-            background-color: #4f46e5;
-            /* Indigo-600 */
-            color: white;
+            background-color: #4f46e5; color: white;
             box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
         }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-
+        .fade-in { animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Custom Input Range */
-        input[type=range] {
-            accent-color: #4f46e5;
-            height: 8px;
-        }
-
         .card-hover:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
+        /* כיוון מתמטיקה */
+        .dir-ltr { direction: ltr; display: inline-block; unicode-bidi: embed; }
     </style>
 </head>
 
-<body class="text-gray-800 pb-12 min-h-screen">
+<body class="text-gray-800 flex flex-col min-h-screen">
 
     <!-- Header -->
-    <header class="bg-indigo-600 text-white p-5 shadow-lg sticky top-0 z-30">
+    <header class="bg-indigo-600 text-white p-4 shadow-lg sticky top-0 z-30">
         <div class="max-w-5xl mx-auto flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl md:text-4xl font-bold">אלגברה גיאומטרית 📐</h1>
-                <p class="text-indigo-100 text-lg">חישובי שטחים והיקפים עם משתנים</p>
+            <div class="flex flex-col">
+                <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-2">
+                    <span>📐</span> אלגברה גיאומטרית
+                </h1>
+                <p class="text-indigo-200 text-sm md:text-base pr-8">חישובי שטחים והיקפים עם משתנים</p>
             </div>
-            <div class="hidden md:block text-2xl font-bold opacity-90">כיתה ח'</div>
+            
+            <div class="flex items-center gap-4">
+                <div class="hidden md:block text-xl font-bold opacity-90">כיתה ח'</div>
+                <a href="../index8.html" onclick="handleLobbyClick(event)" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl transition-all flex items-center gap-2 text-sm font-bold border border-white/20">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span class="hidden sm:inline">לובי</span>
+                </a>
+            </div>
         </div>
     </header>
 
-    <!-- Main Navigation -->
-    <nav class="max-w-5xl mx-auto mt-8 px-4 mb-10">
-        <div class="bg-white rounded-2xl shadow-md p-2 flex justify-between gap-3">
-            <button onclick="setTab('learn')" id="btn-learn"
-                class="tab-btn active flex-1 py-4 rounded-xl text-xl md:text-2xl font-bold text-gray-600 text-center">
-                📘 לומדים
-            </button>
-            <button onclick="setTab('lab')" id="btn-lab"
-                class="tab-btn flex-1 py-4 rounded-xl text-xl md:text-2xl font-bold text-gray-600 text-center">
-                🧪 מעבדה
-            </button>
-            <button onclick="setTab('quiz')" id="btn-quiz"
-                class="tab-btn flex-1 py-4 rounded-xl text-xl md:text-2xl font-bold text-gray-600 text-center">
-                📝 תרגול
-            </button>
+    <!-- Navigation -->
+    <nav class="max-w-5xl mx-auto mt-6 px-4 mb-8">
+        <div class="bg-white rounded-2xl shadow-md p-1.5 flex justify-between gap-2">
+            <button onclick="setTab('learn')" id="btn-learn" class="tab-btn active flex-1 py-3 rounded-xl text-lg md:text-xl font-bold text-gray-600 text-center">📘 לומדים</button>
+            <button onclick="setTab('challenge')" id="btn-challenge" class="tab-btn flex-1 py-3 rounded-xl text-lg md:text-xl font-bold text-gray-600 text-center">🧩 אתגר השטח</button>
+            <button onclick="setTab('quiz')" id="btn-quiz" class="tab-btn flex-1 py-3 rounded-xl text-lg md:text-xl font-bold text-gray-600 text-center">📝 תרגול מסכם</button>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-4">
+    <main class="max-w-5xl mx-auto px-4 flex-grow mb-12">
 
         <!-- SECTION 1: LEARN -->
         <div id="view-learn" class="fade-in">
-            <!-- Intro Card -->
-            <div class="bg-white rounded-3xl shadow-lg p-8 mb-8 border-r-8 border-indigo-500">
-                <h2 class="text-3xl font-bold text-indigo-800 mb-4">מה הקשר בין X למלבן?</h2>
-                <p class="text-xl md:text-2xl leading-relaxed text-gray-700">
-                    בכיתה ח', אנחנו לא תמיד יודעים את אורך הצלע במספרים (כמו 5 ס"מ). לפעמים הצלע מיוצגת על ידי ביטוי
-                    אלגברי (כמו <span class="math-text">x + 2</span>).
-                    <br>הכללים נשארים זהים - פשוט מחליפים את המספר בביטוי!
+            <!-- Definition Card -->
+            <div class="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 md:p-8 mb-8 text-center shadow-sm">
+                <h3 class="text-xl font-bold text-indigo-900 mb-2">💡 הגדרה: ביטוי אלגברי</h3>
+                <p class="text-lg md:text-xl text-indigo-700">
+                    ביטוי אלגברי הוא "משפט מתמטי" שמורכב ממספרים, אותיות (משתנים כמו <span class="math-text">x</span>) ופעולות חשבון.
+                    <br>
+                    <span class="text-sm opacity-75">לדוגמה: <span class="math-text dir-ltr">2x + 5</span> הוא ביטוי אלגברי.</span>
                 </p>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Rectangle Rule -->
-                <div class="bg-white rounded-3xl shadow-lg p-8 card-hover transition duration-300">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-3xl">🟦
-                        </div>
-                        <h3 class="text-2xl font-bold text-blue-900">שטח מלבן</h3>
-                    </div>
-
-                    <div
-                        class="bg-blue-50 p-6 rounded-2xl text-center mb-6 relative h-56 flex items-center justify-center">
-                        <!-- SVG Diagram -->
-                        <svg width="240" height="140" class="overflow-visible">
-                            <rect x="0" y="0" width="240" height="140" fill="#bfdbfe" stroke="#2563eb"
-                                stroke-width="3" />
-                            <!-- Width Label -->
-                            <text x="120" y="-15" text-anchor="middle" font-weight="bold" fill="#1e40af"
-                                font-size="20">אורך = 5</text>
-                            <!-- Height Label -->
-                            <text x="-15" y="70" text-anchor="middle" font-weight="bold" fill="#1e40af" font-size="20"
-                                transform="rotate(-90, -15, 70)">רוחב = x+2</text>
-                            <!-- Area Label -->
-                            <text x="120" y="80" text-anchor="middle" font-weight="bold" fill="#1e3a8a" font-size="24">S
-                                = ?</text>
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Rectangle Area -->
+                <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 card-hover transition duration-300 border-t-4 border-blue-500">
+                    <h3 class="text-2xl font-bold text-blue-900 mb-4 flex items-center gap-2"><span class="text-3xl">🟦</span> שטח מלבן</h3>
+                    <div class="bg-blue-50 p-4 rounded-2xl text-center mb-6 relative h-48 flex items-center justify-center">
+                        <svg width="240" height="140" class="overflow-visible" viewBox="0 0 240 140">
+                            <rect x="0" y="0" width="240" height="140" fill="#bfdbfe" stroke="#2563eb" stroke-width="3" />
+                            <text x="120" y="-10" text-anchor="middle" font-weight="bold" fill="#1e40af" font-size="18">אורך = 5</text>
+                            <text x="-10" y="70" text-anchor="middle" font-weight="bold" fill="#1e40af" font-size="18" transform="rotate(-90, -10, 70)">רוחב = x+2</text>
+                            <text x="120" y="80" text-anchor="middle" font-weight="bold" fill="#1e3a8a" font-size="24">S = ?</text>
                         </svg>
                     </div>
-
-                    <div class="space-y-4 text-xl">
-                        <p><strong>הנוסחה:</strong> אורך × רוחב</p>
-                        <p class="bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-center">
-                            <span class="math-text font-bold text-2xl">S = 5 · (x + 2)</span>
-                        </p>
+                    <div class="space-y-3 text-lg">
+                        <p>הנוסחה: <strong>אורך × רוחב</strong></p>
+                        <p class="bg-white border border-blue-100 p-2 rounded-lg text-center shadow-sm"><span class="math-text text-xl dir-ltr">S = 5 · (x + 2)</span></p>
                         <p>נפתח סוגריים (חוק הפילוג):</p>
-                        <p class="text-2xl font-bold text-indigo-700 text-center dir-ltr">S = 5x + 10</p>
+                        <p class="text-center text-blue-700 font-bold text-xl"><span class="dir-ltr">S = 5x + 10</span></p>
                     </div>
                 </div>
 
-                <!-- Perimeter Rule -->
-                <div class="bg-white rounded-3xl shadow-lg p-8 card-hover transition duration-300">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-3xl">🟩
-                        </div>
-                        <h3 class="text-2xl font-bold text-green-900">היקף מלבן</h3>
-                    </div>
-
-                    <div
-                        class="bg-green-50 p-6 rounded-2xl text-center mb-6 relative h-56 flex items-center justify-center">
-                        <!-- SVG Diagram -->
-                        <svg width="180" height="180" class="overflow-visible">
-                            <rect x="0" y="0" width="180" height="180" fill="#bbf7d0" stroke="#16a34a"
-                                stroke-width="3" />
-                            <!-- Side Label -->
-                            <text x="90" y="-15" text-anchor="middle" font-weight="bold" fill="#166534"
-                                font-size="20">צלע = x</text>
-                            <text x="-15" y="90" text-anchor="middle" font-weight="bold" fill="#166534" font-size="20"
-                                transform="rotate(-90, -15, 90)">צלע = x</text>
-                            <text x="90" y="100" text-anchor="middle" font-weight="bold" fill="#14532d"
-                                font-size="24">ריבוע</text>
+                <!-- Perimeter -->
+                <div class="bg-white rounded-3xl shadow-lg p-6 md:p-8 card-hover transition duration-300 border-t-4 border-green-500">
+                    <h3 class="text-2xl font-bold text-green-900 mb-4 flex items-center gap-2"><span class="text-3xl">🟩</span> היקף מלבן</h3>
+                    <div class="bg-green-50 p-4 rounded-2xl text-center mb-6 relative h-48 flex items-center justify-center">
+                        <svg width="160" height="160" class="overflow-visible" viewBox="0 0 180 180">
+                            <rect x="10" y="10" width="160" height="160" fill="#bbf7d0" stroke="#16a34a" stroke-width="3" />
+                            <text x="90" y="0" text-anchor="middle" font-weight="bold" fill="#166534" font-size="18">צלע = x</text>
+                            <text x="0" y="90" text-anchor="middle" font-weight="bold" fill="#166534" font-size="18" transform="rotate(-90, 0, 90)">צלע = x</text>
+                            <text x="90" y="95" text-anchor="middle" font-weight="bold" fill="#14532d" font-size="24">ריבוע</text>
                         </svg>
                     </div>
-
-                    <div class="space-y-4 text-xl">
-                        <p><strong>הנוסחה:</strong> סכום כל הצלעות (או 4 × צלע)</p>
-                        <p class="bg-indigo-50 p-3 rounded-lg border border-indigo-100 text-center">
-                            <span class="math-text font-bold text-2xl">P = 4 · x</span>
-                        </p>
-                        <p>אם הצלע הייתה <span class="math-text">x+3</span>:</p>
-                        <p class="text-2xl font-bold text-green-700 text-center dir-ltr">P = 4(x+3) = 4x + 12</p>
+                    <div class="space-y-3 text-lg">
+                        <p>הנוסחה: <strong>סכום כל הצלעות</strong></p>
+                        <p class="bg-white border border-green-100 p-2 rounded-lg text-center shadow-sm"><span class="math-text text-xl dir-ltr">P = 4 · x</span></p>
+                        <p class="text-sm text-gray-500 text-center">אם הצלע הייתה <span class="math-text">x+3</span> ההיקף היה <span class="dir-ltr font-bold">4x + 12</span></p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SECTION 2: LAB -->
-        <div id="view-lab" class="hidden fade-in">
-            <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10">
-                <div class="flex flex-col lg:flex-row gap-10">
+        <!-- SECTION 2: CHALLENGE (Formerly Lab) -->
+        <div id="view-challenge" class="hidden fade-in">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200">
+                <div class="bg-slate-800 text-white p-6 text-center">
+                    <h2 class="text-3xl font-bold mb-2">אתגר השטח המנוקד 🎯</h2>
+                    <p class="opacity-80 text-lg">בתוך מלבן גדול משורטט מלבן קטן. בואו נמצא את השטח הנותר.</p>
+                </div>
 
-                    <!-- Controls -->
-                    <div class="w-full lg:w-1/3 space-y-8">
-                        <div>
-                            <h2 class="text-3xl font-bold text-indigo-800 mb-2">מעבדת האלגברה</h2>
-                            <p class="text-xl text-gray-600">שנו את ערך ה-<span class="math-text">x</span> וצפו
-                                בשינויים:</p>
+                <div class="p-6 md:p-10 flex flex-col items-center">
+                    <!-- The Visual Problem -->
+                    <div class="relative mb-10 transform scale-100 md:scale-125 origin-top">
+                        <!-- Outer Rect -->
+                        <div class="w-[300px] h-[135px] bg-gray-200 border-4 border-black relative flex items-center justify-center pattern-dots">
+                            <!-- Inner Rect -->
+                            <div class="w-[225px] h-[60px] bg-white border-2 border-black flex items-center justify-center relative shadow-sm">
+                                <span class="text-gray-400 text-xs font-bold absolute bottom-1 right-2">מלבן פנימי</span>
+                            </div>
+                            
+                            <!-- Dimensions -->
+                            <span class="absolute -top-8 left-1/2 -translate-x-1/2 font-bold text-lg">20 ס"מ</span>
+                            <span class="absolute top-1/2 -right-12 -translate-y-1/2 font-bold text-lg">9 ס"מ</span>
+                            
+                            <!-- Inner Dimensions -->
+                            <span class="absolute top-[28px] left-1/2 -translate-x-1/2 font-bold text-sm bg-white/80 px-1 rounded">15</span>
+                            <span class="absolute top-1/2 right-[28px] -translate-y-1/2 font-bold text-sm bg-white/80 px-1 rounded math-text">x</span>
                         </div>
-
-                        <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-200 shadow-sm">
-                            <div class="flex justify-between items-center mb-4">
-                                <label class="font-bold text-indigo-900 text-2xl">ערך ה-X:</label>
-                                <span id="x-value-display"
-                                    class="bg-white px-4 py-2 rounded-lg shadow font-bold text-2xl text-indigo-600">4</span>
-                            </div>
-                            <input type="range" id="x-input" min="1" max="10" value="4" step="1"
-                                class="w-full bg-indigo-200 rounded-lg appearance-none cursor-pointer mb-2"
-                                oninput="updateLab()">
-                            <div class="flex justify-between text-base font-bold text-indigo-400">
-                                <span>1</span>
-                                <span>10</span>
-                            </div>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div class="p-5 rounded-2xl bg-blue-50 border-r-4 border-blue-500">
-                                <span class="block text-lg text-blue-800 font-bold mb-1">ביטוי לרוחב (כחול):</span>
-                                <span class="text-3xl math-text text-blue-900">x</span>
-                            </div>
-                            <div class="p-5 rounded-2xl bg-red-50 border-r-4 border-red-500">
-                                <span class="block text-lg text-red-800 font-bold mb-1">ביטוי לאורך (אדום):</span>
-                                <span class="text-3xl math-text text-red-900">x + 5</span>
-                            </div>
-                        </div>
+                        <div class="absolute -bottom-8 w-full text-center text-sm font-bold text-gray-500">נתון: <span class="dir-ltr inline-block">9 > x > 0</span></div>
                     </div>
 
-                    <!-- Visualization -->
-                    <div
-                        class="w-full lg:w-2/3 flex flex-col items-center justify-center bg-gray-50 rounded-3xl p-6 border border-gray-200 min-h-[500px]">
+                    <!-- Steps Container -->
+                    <div class="w-full max-w-2xl space-y-6">
+                        
+                        <!-- Step A -->
+                        <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100">
+                            <h3 class="text-xl font-bold text-blue-900 mb-2 flex items-center gap-2">
+                                <span class="bg-blue-200 w-8 h-8 rounded-full flex items-center justify-center text-sm">א</span>
+                                רשמו ביטוי אלגברי לשטח המנוקד (האפור)
+                            </h3>
+                            <p class="text-gray-600 mb-4 text-sm">נסו לחשב לבד: שטח גדול פחות שטח קטן.</p>
+                            
+                            <button onclick="document.getElementById('step-a-sol').classList.toggle('hidden')" class="w-full bg-white border-2 border-blue-200 text-blue-700 font-bold py-2 rounded-xl hover:bg-blue-100 transition text-sm">
+                                בדקתי, הראה לי את הפתרון 👇
+                            </button>
 
-                        <!-- Dynamic SVG -->
-                        <svg id="lab-svg" width="100%" height="350" viewBox="0 0 500 350"
-                            class="overflow-visible transition-all duration-300">
-                            <defs>
-                                <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto"
-                                    markerUnits="strokeWidth">
-                                    <path d="M0,0 L0,6 L9,3 z" fill="#4b5563" />
-                                </marker>
-                            </defs>
-
-                            <!-- Rectangle -->
-                            <rect id="lab-rect" x="100" y="50" width="100" height="150" fill="rgba(79, 70, 229, 0.1)"
-                                stroke="#4338ca" stroke-width="4" rx="4" />
-
-                            <!-- Width Indicators (Blue) -->
-                            <!-- The Algebraic Expression -->
-                            <text id="text-width-alg" x="150" y="35" text-anchor="middle" fill="#2563eb"
-                                font-weight="bold" font-size="24" class="math-text">x</text>
-
-                            <!-- The Arrow and Dynamic Value -->
-                            <path id="arrow-width" d="M150 25 L150 10" stroke="#9ca3af" stroke-width="2"
-                                marker-end="url(#arrow)" fill="none" transform="rotate(180 150 17)" />
-                            <rect id="bg-width-val" x="135" y="-20" width="30" height="25" rx="5" fill="white"
-                                stroke="#e5e7eb" />
-                            <text id="text-width-val" x="150" y="-3" text-anchor="middle" fill="#1f2937"
-                                font-weight="bold" font-size="18">4</text>
-
-
-                            <!-- Height Indicators (Red) -->
-                            <!-- The Algebraic Expression -->
-                            <text id="text-height-alg" x="80" y="125" text-anchor="middle" fill="#dc2626"
-                                font-weight="bold" font-size="24" transform="rotate(-90, 80, 125)" class="math-text">x +
-                                5</text>
-
-                            <!-- The Arrow and Dynamic Value -->
-                            <path id="arrow-height" d="M65 125 L50 125" stroke="#9ca3af" stroke-width="2"
-                                marker-end="url(#arrow)" fill="none" transform="rotate(180 57 125)" />
-                            <rect id="bg-height-val" x="10" y="112" width="30" height="25" rx="5" fill="white"
-                                stroke="#e5e7eb" />
-                            <text id="text-height-val" x="25" y="131" text-anchor="middle" fill="#1f2937"
-                                font-weight="bold" font-size="18">9</text>
-
-                            <!-- Calculation Center -->
-                            <text x="250" y="340" text-anchor="middle" class="text-xl font-bold" id="calc-display-area"
-                                fill="#4b5563"></text>
-                        </svg>
-
-                        <!-- Live Calculations -->
-                        <div class="grid grid-cols-2 gap-6 w-full mt-8">
-                            <div
-                                class="bg-white p-6 rounded-2xl shadow-md border text-center transform transition hover:scale-105">
-                                <h4 class="text-gray-500 font-bold mb-2 text-xl">שטח (S)</h4>
-                                <div class="text-base text-gray-400 mb-2">אורך · רוחב</div>
-                                <div class="text-2xl font-bold text-indigo-600 dir-ltr mb-2 math-text">x(x+5)</div>
-                                <div id="res-area-num" class="text-4xl font-bold text-gray-800">36</div>
+                            <div id="step-a-sol" class="hidden mt-4 space-y-3 animate-fade-in border-t border-blue-200 pt-4">
+                                <div class="flex justify-between items-center bg-white p-3 rounded-xl">
+                                    <span>שטח המלבן הגדול:</span>
+                                    <span class="font-bold dir-ltr">20 · 9 = 180</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-white p-3 rounded-xl">
+                                    <span>שטח המלבן הלבן (הפנימי):</span>
+                                    <span class="font-bold dir-ltr math-text text-indigo-600">15 · x = 15x</span>
+                                </div>
+                                <div class="mt-4 p-4 bg-blue-100 rounded-xl text-center">
+                                    <span class="block text-sm text-blue-700 font-bold mb-1">הביטוי לשטח המנוקד:</span>
+                                    <span class="text-3xl font-black text-blue-900 dir-ltr math-text">180 - 15x</span>
+                                </div>
                             </div>
-                            <div
-                                class="bg-white p-6 rounded-2xl shadow-md border text-center transform transition hover:scale-105">
-                                <h4 class="text-gray-500 font-bold mb-2 text-xl">היקף (P)</h4>
-                                <div class="text-base text-gray-400 mb-2">סכום צלעות</div>
-                                <div class="text-2xl font-bold text-indigo-600 dir-ltr mb-2 math-text">2x + 2(x+5)</div>
-                                <div id="res-peri-num" class="text-4xl font-bold text-gray-800">26</div>
+                        </div>
+
+                        <!-- Step B -->
+                        <div class="bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
+                            <h3 class="text-xl font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                                <span class="bg-indigo-200 w-8 h-8 rounded-full flex items-center justify-center text-sm">ב</span>
+                                הציבו <span class="math-text px-1">x = 6</span> וחשבו את השטח
+                            </h3>
+                            <p class="text-gray-600 mb-4 text-sm">הציבו את המספר בביטוי שמצאנו בסעיף א'.</p>
+
+                            <button onclick="document.getElementById('step-b-sol').classList.toggle('hidden')" class="w-full bg-white border-2 border-indigo-200 text-indigo-700 font-bold py-2 rounded-xl hover:bg-indigo-100 transition text-sm">
+                                בדקתי, הראה לי את הפתרון 👇
+                            </button>
+
+                            <div id="step-b-sol" class="hidden mt-4 animate-fade-in border-t border-indigo-200 pt-4">
+                                <div class="flex items-center justify-center gap-2 text-xl md:text-2xl bg-white p-4 rounded-xl shadow-sm dir-ltr font-bold text-gray-700">
+                                    <span>180 - 15(6)</span>
+                                    <span>=</span>
+                                    <span>180 - 90</span>
+                                    <span>=</span>
+                                    <span class="text-green-600 bg-green-50 px-3 py-1 rounded-lg">90</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step C -->
+                        <div class="bg-orange-50 rounded-2xl p-6 border border-orange-100">
+                            <h3 class="text-xl font-bold text-orange-900 mb-2 flex items-center gap-2">
+                                <span class="bg-orange-200 w-8 h-8 rounded-full flex items-center justify-center text-sm">ג</span>
+                                האם ייתכן שהשטח המנוקד הוא 45 סמ"ר?
+                            </h3>
+                            <p class="text-gray-600 mb-4 text-sm">בנו משוואה ובדקו האם התוצאה הגיונית.</p>
+
+                            <button onclick="document.getElementById('step-c-sol').classList.toggle('hidden')" class="w-full bg-white border-2 border-orange-200 text-orange-700 font-bold py-2 rounded-xl hover:bg-orange-100 transition text-sm">
+                                לחצו לבדיקה ופתרון 👇
+                            </button>
+                            <div id="step-c-sol" class="hidden mt-4 space-y-3 animate-fade-in border-t border-orange-200 pt-4">
+                                <p>נשווה את הביטוי שמצאנו ל-45:</p>
+                                <div class="bg-white p-3 rounded-lg text-center dir-ltr font-bold text-lg">180 - 15x = 45</div>
+                                <p>נעביר אגפים (<span class="dir-ltr inline-block text-sm text-gray-500">180 - 45 = 15x</span>):</p>
+                                <div class="bg-white p-3 rounded-lg text-center dir-ltr font-bold text-lg">135 = 15x</div>
+                                <div class="bg-white p-3 rounded-lg text-center dir-ltr font-bold text-lg">x = 9</div>
+                                <div class="bg-red-100 p-4 rounded-xl text-center border border-red-200">
+                                    <p class="font-bold text-red-800 text-lg mb-1">התשובה: לא ייתכן! ❌</p>
+                                    <p class="text-sm text-red-700">קיבלנו ש-<span class="math-text dir-ltr">x = 9</span>, אבל נתון שצלע המלבן הגדול היא 9, והמלבן הקטן חייב להיות <strong>בתוך</strong> הגדול (כלומר <span class="math-text dir-ltr">x < 9</span>).</p>
+                                </div>
                             </div>
                         </div>
 
@@ -334,16 +306,11 @@
         <div id="view-quiz" class="hidden fade-in">
             <div class="max-w-4xl mx-auto">
                 <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
-                    <!-- Progress Bar -->
-                    <div class="w-full bg-gray-200 h-4">
-                        <div id="quiz-progress" class="bg-indigo-600 h-4 transition-all duration-500" style="width: 0%">
-                        </div>
+                    <div class="w-full bg-gray-200 h-3">
+                        <div id="quiz-progress" class="bg-indigo-600 h-3 transition-all duration-500" style="width: 0%"></div>
                     </div>
-
-                    <div class="p-8 md:p-12">
-                        <div id="quiz-content">
-                            <!-- Content injected by JS -->
-                        </div>
+                    <div class="p-6 md:p-12">
+                        <div id="quiz-content"></div>
                     </div>
                 </div>
             </div>
@@ -351,177 +318,78 @@
 
     </main>
 
+    <footer class="text-center text-gray-400 text-sm py-6">
+        © כל הזכויות שמורות לאלוגברה
+    </footer>
+
     <!-- JS Logic -->
     <script>
-        // --- State Management ---
         let currentTab = 'learn';
-        let quizState = {
-            currentQ: 0,
-            score: 0,
-            answered: false
-        };
+        let quizState = { currentQ: 0, score: 0, answered: false };
 
         const questions = [
             {
-                type: 'geometry',
-                title: "חישוב שטח בסיסי",
-                q: "נתון מלבן שאורכו 8 ס''מ ורוחבו <span class='math-text'>x</span> ס''מ. הביטוי לשטח המלבן הוא 24 סמ''ר.<br>מהו הערך של <span class='math-text'>x</span>?",
-                visual: `<rect width="160" height="80" fill="#e0e7ff" stroke="#4338ca" stroke-width="2"/><text x="80" y="45" text-anchor="middle" font-weight="bold" fill="#4338ca" font-size="18">S = 24</text><text x="80" y="-10" text-anchor="middle" fill="black" font-weight="bold" font-size="16">8</text><text x="-15" y="40" text-anchor="middle" fill="red" transform="rotate(-90, -15, 40)" font-weight="bold" font-size="16" class="math-text">x</text>`,
-                options: ["2", "3", "4", "16"],
-                correct: 1, // index
-                explanation: "שטח מלבן הוא אורך כפול רוחב. המשוואה היא: <span class='dir-ltr inline-block font-bold'>8 · x = 24</span>. נחלק ב-8 ונקבל <span class='dir-ltr inline-block font-bold'>x = 3</span>."
-            },
-            {
-                type: 'word',
-                title: "בעיה מילולית - היקף",
-                q: "נתון ריבוע שאורך הצלע שלו הוא <span class='math-text'>x + 2</span>. היקף הריבוע הוא 20 ס''מ.<br>חשבו את <span class='math-text'>x</span>.",
-                visual: `<rect width="120" height="120" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="60" y="65" text-anchor="middle" font-weight="bold" fill="#166534" font-size="20">P = 20</text><text x="60" y="-15" text-anchor="middle" fill="black" font-weight="bold" font-size="18" class="math-text">x + 2</text>`,
-                options: ["x = 5", "x = 3", "x = 4", "x = 2"],
+                title: "בסיס",
+                q: "מהו שטח מלבן שצלעותיו הן 4 ו-<span class='math-text'>x</span>?",
+                options: ["4 + x", "4x", "x²", "16"],
                 correct: 1,
-                explanation: "היקף ריבוע הוא 4 פעמים הצלע. המשוואה: <span class='dir-ltr inline-block font-bold'>4(x + 2) = 20</span>.<br>נפתח סוגריים: <span class='dir-ltr inline-block font-bold'>4x + 8 = 20</span>.<br>נחסר 8: <span class='dir-ltr inline-block font-bold'>4x = 12</span>.<br>נחלק ב-4: <span class='dir-ltr inline-block font-bold'>x = 3</span>."
+                explanation: "שטח הוא מכפלת הצלעות: <span class='dir-ltr inline-block font-bold'>4 · x = 4x</span>"
             },
             {
-                type: 'geometry',
-                title: "ביטוי אלגברי לשטח",
-                q: "צלע אחת של מלבן היא <span class='math-text'>x</span> והצלע השנייה גדולה ממנה ב-4 (כלומר <span class='math-text'>x + 4</span>).<br>איזה ביטוי מייצג את <strong>שטח</strong> המלבן?",
-                visual: `<rect width="160" height="90" fill="#ffedd5" stroke="#c2410c" stroke-width="2"/><text x="80" y="-10" text-anchor="middle" fill="black" font-weight="bold" font-size="16" class="math-text">x + 4</text><text x="-15" y="45" text-anchor="middle" fill="red" transform="rotate(-90, -15, 45)" font-weight="bold" font-size="16" class="math-text">x</text>`,
-                options: ["x + (x + 4)", "2x + 4", "x(x + 4)", "4x"],
+                title: "היקף",
+                q: "נתון ריבוע עם צלע <span class='math-text'>a</span>. מהו ההיקף?",
+                options: ["a²", "2a", "4a", "a + 4"],
                 correct: 2,
-                explanation: "שטח הוא מכפלת הצלעות. לכן נכפיל את <span class='math-text'>x</span> ב-<span class='math-text'>(x + 4)</span>. הביטוי הוא <span class='math-text'>x(x + 4)</span> או <span class='math-text'>x² + 4x</span>."
+                explanation: "היקף ריבוע הוא סכום 4 הצלעות השוות: <span class='dir-ltr inline-block font-bold'>a + a + a + a = 4a</span>"
             },
             {
-                type: 'word',
-                title: "מציאת צלעות",
-                q: "שטח מלבן הוא 30. צלע אחת היא 5, הצלע השנייה מסומנת ב-<span class='math-text'>x - 1</span>. מהו <span class='math-text'>x</span>?",
-                visual: `<rect width="140" height="80" fill="#fce7f3" stroke="#db2777" stroke-width="2"/><text x="70" y="45" text-anchor="middle" font-weight="bold" fill="#db2777" font-size="18">S = 30</text><text x="70" y="-10" text-anchor="middle" font-weight="bold" font-size="16">5</text><text x="-20" y="40" text-anchor="middle" transform="rotate(-90, -20, 40)" font-weight="bold" font-size="16" class="math-text">x - 1</text>`,
-                options: ["x = 7", "x = 6", "x = 5", "x = 31"],
+                title: "הצבה",
+                q: "שטח מלבן מיוצג ע''י הביטוי <span class='math-text dir-ltr'>3(x + 2)</span>. חשבו את השטח אם <span class='math-text dir-ltr'>x = 4</span>.",
+                options: ["18", "14", "12", "6"],
                 correct: 0,
-                explanation: "המשוואה היא <span class='dir-ltr inline-block font-bold'>5(x - 1) = 30</span>.<br>נחלק ב-5 ונקבל <span class='dir-ltr inline-block font-bold'>x - 1 = 6</span>.<br>נוסיף 1 ונקבל <span class='dir-ltr inline-block font-bold'>x = 7</span>."
+                explanation: "נציב 4 במקום x: <span class='dir-ltr inline-block font-bold'>3(4 + 2) = 3(6) = 18</span>"
+            },
+            {
+                title: "חיבור שטחים",
+                q: "מלבן א' שטחו <span class='math-text dir-ltr'>5x</span>. מלבן ב' שטחו <span class='math-text'>10</span>. מה הביטוי לשטח הכולל?",
+                options: ["50x", "5x + 10", "15x", "5x - 10"],
+                correct: 1,
+                explanation: "כדי למצוא שטח כולל מחברים את השטחים: <span class='dir-ltr inline-block font-bold'>5x + 10</span>."
+            },
+            {
+                title: "מציאת נעלם (אתגר)",
+                q: "היקף מלבן הוא 20. צלע אחת היא 4. מה אורך הצלע השנייה (<span class='math-text'>x</span>)?",
+                options: ["16", "6", "10", "5"],
+                correct: 1,
+                explanation: "היקף הוא <span class='dir-ltr'>2(4 + x) = 20</span>.<br>נחלק ב-2: <span class='dir-ltr'>4 + x = 10</span>.<br>נחסר 4: <span class='dir-ltr'>x = 6</span>."
+            },
+            {
+                title: "שטח מורכב (קשה)",
+                q: "ריבוע גדול בצלע 10, בתוכו חור ריבועי בצלע <span class='math-text'>x</span>. מה השטח הצבוע?",
+                options: ["100 - x", "100 - x²", "10 - x", "40 - 4x"],
+                correct: 1,
+                explanation: "שטח הגדול: <span class='dir-ltr'>10² = 100</span>.<br>שטח הקטן: <span class='dir-ltr'>x²</span>.<br>השטח הצבוע (חיסור): <span class='dir-ltr font-bold'>100 - x²</span>."
             }
         ];
 
-        // --- Core Functions ---
-
         function setTab(tab) {
-            // UI Toggle
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${tab}`).classList.add('active');
-
-            // View Toggle
-            ['learn', 'lab', 'quiz'].forEach(v => {
+            ['learn', 'challenge', 'quiz'].forEach(v => {
                 const el = document.getElementById(`view-${v}`);
-                if (v === tab) {
-                    el.classList.remove('hidden');
-                } else {
-                    el.classList.add('hidden');
-                }
+                if(v === tab) el.classList.remove('hidden');
+                else el.classList.add('hidden');
             });
-
-            currentTab = tab;
-            if (tab === 'lab') updateLab();
             if (tab === 'quiz' && quizState.currentQ === 0) renderQuiz();
         }
-
-        function updateLab() {
-            const x = parseInt(document.getElementById('x-input').value);
-            document.getElementById('x-value-display').innerText = x;
-
-            // Logic: Width = x, Height = x + 5
-            const widthAlg = x;
-            const heightAlg = x + 5;
-
-            // Visual Scaling 
-            const scale = 18; // Increased scale
-            const wPx = widthAlg * scale;
-            const hPx = heightAlg * scale;
-
-            // Center coords
-            const svgWidth = 500;
-            const svgHeight = 350;
-            const startX = (svgWidth - wPx) / 2;
-            const startY = (svgHeight - hPx) / 2;
-
-            // Update SVG Rect
-            const rect = document.getElementById('lab-rect');
-            rect.setAttribute('width', wPx);
-            rect.setAttribute('height', hPx);
-            rect.setAttribute('x', startX);
-            rect.setAttribute('y', startY);
-
-            // Update Width Elements (Top)
-            // Algebraic X
-            const textWAlg = document.getElementById('text-width-alg');
-            textWAlg.setAttribute('x', startX + wPx / 2);
-            textWAlg.setAttribute('y', startY - 15);
-            // Dynamic Value Bubble
-            const bgW = document.getElementById('bg-width-val');
-            const txtW = document.getElementById('text-width-val');
-            const arrowW = document.getElementById('arrow-width');
-
-            // Pos bubble FURTHER above algebraic text (Increased distance)
-            const bubbleX = startX + wPx / 2;
-            const bubbleY = startY - 65;
-
-            bgW.setAttribute('x', bubbleX - 15);
-            bgW.setAttribute('y', bubbleY - 15);
-            txtW.setAttribute('x', bubbleX);
-            txtW.setAttribute('y', bubbleY + 5);
-            txtW.textContent = x;
-
-            // Arrow pointing from bubble DOWN towards alg text but stopping earlier
-            arrowW.setAttribute('d', `M${bubbleX} ${bubbleY + 12} L${bubbleX} ${startY - 42}`);
-            arrowW.setAttribute('transform', ''); // Remove old rotation
-            arrowW.setAttribute('marker-end', 'url(#arrow)');
-
-
-            // Update Height Elements (Left)
-            // Algebraic X+5
-            const textHAlg = document.getElementById('text-height-alg');
-            textHAlg.setAttribute('x', startX - 25);
-            textHAlg.setAttribute('y', startY + hPx / 2);
-            textHAlg.setAttribute('transform', `rotate(-90, ${startX - 25}, ${startY + hPx / 2})`);
-
-            // Dynamic Value Bubble
-            const bgH = document.getElementById('bg-height-val');
-            const txtH = document.getElementById('text-height-val');
-            const arrowH = document.getElementById('arrow-height');
-
-            // Pos bubble FURTHER left of algebraic text (Increased distance)
-            const bubbleHX = startX - 85;
-            const bubbleHY = startY + hPx / 2;
-
-            bgH.setAttribute('x', bubbleHX - 15);
-            bgH.setAttribute('y', bubbleHY - 15);
-            txtH.setAttribute('x', bubbleHX);
-            txtH.setAttribute('y', bubbleHY + 5);
-            txtH.textContent = x + 5;
-
-            // Arrow pointing RIGHT towards alg text but stopping earlier
-            arrowH.setAttribute('d', `M${bubbleHX + 18} ${bubbleHY} L${startX - 56} ${bubbleHY}`);
-            arrowH.setAttribute('transform', '');
-            arrowH.setAttribute('marker-end', 'url(#arrow)');
-
-
-            // Numeric Calculations
-            const area = widthAlg * heightAlg;
-            const peri = 2 * (widthAlg + heightAlg);
-
-            document.getElementById('res-area-num').innerText = area;
-            document.getElementById('res-peri-num').innerText = peri;
-        }
-
-        // --- Quiz Logic ---
 
         function renderQuiz() {
             if (quizState.currentQ >= questions.length) {
                 showFinalScore();
                 return;
             }
-
             const q = questions[quizState.currentQ];
             const container = document.getElementById('quiz-content');
-
-            // Update Progress
             const progress = ((quizState.currentQ) / questions.length) * 100;
             document.getElementById('quiz-progress').style.width = `${progress}%`;
 
@@ -531,76 +399,53 @@
                         <span class="text-base font-bold text-gray-400">שאלה ${quizState.currentQ + 1} מתוך ${questions.length}</span>
                         <span class="bg-indigo-100 text-indigo-800 text-sm font-bold px-3 py-1 rounded-full">${q.title}</span>
                     </div>
-                    
-                    <div class="mb-10 flex flex-col md:flex-row gap-8 items-center">
-                        <div class="flex-1">
-                            <h3 class="text-3xl font-bold text-gray-800 mb-4 leading-relaxed">${q.q}</h3>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-center min-w-[240px]">
-                            <svg width="200" height="140" viewBox="-30 -20 220 160" class="overflow-visible">
-                                ${q.visual}
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="options-grid">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-8 leading-relaxed">${q.q}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         ${q.options.map((opt, idx) => `
-                            <button onclick="checkAnswer(${idx})" class="option-btn w-full p-5 text-right rounded-2xl border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition text-xl font-medium">
+                            <button onclick="checkAnswer(${idx})" class="option-btn w-full p-5 text-right rounded-2xl border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 transition text-lg font-medium dir-ltr">
                                 ${opt}
                             </button>
                         `).join('')}
                     </div>
-
-                    <div id="feedback-area" class="hidden mt-8 p-8 rounded-2xl bg-gray-50 border border-gray-200">
-                        <h4 id="feedback-title" class="text-2xl font-bold mb-3"></h4>
-                        <p id="feedback-text" class="text-xl text-gray-700 leading-relaxed"></p>
-                        <button onclick="nextQuestion()" class="mt-6 bg-indigo-600 text-white px-10 py-4 rounded-full font-bold hover:bg-indigo-700 transition w-full md:w-auto text-lg shadow-lg">
-                            המשך לשאלה הבאה
-                        </button>
+                    <div id="feedback-area" class="hidden mt-8 p-6 rounded-2xl bg-gray-50 border border-gray-200">
+                        <h4 id="feedback-title" class="text-xl font-bold mb-2"></h4>
+                        <p id="feedback-text" class="text-lg text-gray-700"></p>
+                        <button onclick="nextQuestion()" class="mt-4 bg-indigo-600 text-white px-8 py-3 rounded-full font-bold hover:bg-indigo-700 transition shadow-lg w-full md:w-auto">הבא</button>
                     </div>
                 </div>
             `;
-
             container.innerHTML = html;
         }
 
         function checkAnswer(idx) {
             if (quizState.answered) return;
             quizState.answered = true;
-
             const q = questions[quizState.currentQ];
             const btns = document.querySelectorAll('.option-btn');
             const feedbackArea = document.getElementById('feedback-area');
             const feedbackTitle = document.getElementById('feedback-title');
-            const feedbackText = document.getElementById('feedback-text');
-
-            // Disable all buttons
+            
             btns.forEach(btn => {
                 btn.disabled = true;
-                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                btn.classList.add('opacity-70');
             });
 
             if (idx === q.correct) {
                 quizState.score++;
-                btns[idx].classList.remove('border-gray-200', 'hover:border-indigo-500');
+                btns[idx].classList.remove('border-gray-200');
                 btns[idx].classList.add('bg-green-100', 'border-green-500', 'text-green-800');
-                feedbackTitle.innerText = "כל הכבוד! תשובה נכונה 🎉";
-                feedbackTitle.classList.add('text-green-700');
+                feedbackTitle.innerText = "נכון מאוד! 🎉";
+                feedbackTitle.className = "text-xl font-bold mb-2 text-green-700";
             } else {
                 btns[idx].classList.remove('border-gray-200');
                 btns[idx].classList.add('bg-red-100', 'border-red-500', 'text-red-800');
-
-                // Highlight correct
                 btns[q.correct].classList.remove('border-gray-200');
                 btns[q.correct].classList.add('bg-green-50', 'border-green-500', 'text-green-800');
-
                 feedbackTitle.innerText = "לא נורא, הנה ההסבר:";
-                feedbackTitle.classList.add('text-indigo-700');
+                feedbackTitle.className = "text-xl font-bold mb-2 text-indigo-700";
             }
-
-            feedbackText.innerHTML = q.explanation;
+            document.getElementById('feedback-text').innerHTML = q.explanation;
             feedbackArea.classList.remove('hidden');
-            feedbackArea.classList.add('fade-in');
         }
 
         function nextQuestion() {
@@ -611,36 +456,24 @@
 
         function showFinalScore() {
             const percentage = Math.round((quizState.score / questions.length) * 100);
-            let msg = "";
-            if (percentage === 100) msg = "אליפות העולם! 🏆";
-            else if (percentage >= 75) msg = "עבודה מצוינת! 💪";
-            else msg = "תרגול טוב, המשיכו כך! 📚";
-
+            let msg = percentage === 100 ? "מושלם! 🏆" : percentage >= 70 ? "עבודה יפה! 💪" : "כדאי לתרגל עוד קצת 📚";
+            
             document.getElementById('quiz-content').innerHTML = `
-                <div class="text-center py-12 fade-in">
-                    <div class="text-7xl mb-6">🏁</div>
-                    <h2 class="text-4xl font-bold text-gray-800 mb-3">סיימת את התרגול!</h2>
-                    <p class="text-2xl text-gray-500 mb-10">${msg}</p>
-                    
-                    <div class="inline-block bg-indigo-50 rounded-3xl p-10 mb-10 shadow-inner">
-                        <span class="block text-base font-bold text-indigo-400 uppercase tracking-widest mb-2">ציון סופי</span>
-                        <span class="text-7xl font-bold text-indigo-600">${percentage}</span>
+                <div class="text-center py-10 fade-in">
+                    <div class="text-6xl mb-4">🏁</div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">סיימת את התרגול!</h2>
+                    <p class="text-xl text-gray-500 mb-8">${msg}</p>
+                    <div class="inline-block bg-indigo-50 rounded-3xl p-8 mb-8">
+                        <span class="block text-sm font-bold text-indigo-400 uppercase mb-2">ציון סופי</span>
+                        <span class="text-6xl font-bold text-indigo-600">${percentage}</span>
                     </div>
-
                     <div>
-                        <button onclick="location.reload()" class="bg-gray-800 text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-black transition shadow-xl transform hover:-translate-y-1">
-                            התחל מחדש
-                        </button>
+                        <button onclick="location.reload()" class="bg-gray-800 text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-black transition">נסה שוב</button>
                     </div>
                 </div>
             `;
             document.getElementById('quiz-progress').style.width = `100%`;
         }
-
-        // Init
-        updateLab();
-
     </script>
 </body>
-
 </html>
