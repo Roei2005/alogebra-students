@@ -3,38 +3,68 @@
 
 <head>
     <script>
-        // --- הגדרות ---
-        const SESSION_KEY = 'access_grade8'; // שנה ל-'access_grade9' אם זה קובץ של כיתה ט'
-        const LOGIN_PAGE = '../index8.html'; // שנה ל-'../index9.html' אם זה כיתה ט'
+        // --- הגדרות אבטחה וחיבור ---
+        const SESSION_KEY = 'access_grade8';
+        const LOGIN_PAGE = '../index8.html';
         const TIMEOUT_MINUTES = 30;
 
-        // 1. בדיקת כניסה
-        if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-            window.location.replace(LOGIN_PAGE);
+        // --- מנגנון הפניה בטוחה ---
+        function safeRedirect(url) {
+            try {
+                const isPreview = window.location.protocol === 'blob:' || 
+                                window.location.hostname === 'localhost' || 
+                                window.location.hostname.includes('googleusercontent');
+                if (isPreview) {
+                    console.warn('Preview mode detected: Redirect blocked.');
+                    return;
+                }
+                window.location.replace(url);
+            } catch (e) {
+                console.error('Redirect failed:', e);
+            }
         }
 
-        // 2. ניתוק אוטומטי
+        // פונקציה גלובלית לטיפול בלחיצה על הלובי
+        function handleLobbyClick(e) {
+            const isPreview = window.location.protocol === 'blob:' || 
+                            window.location.hostname === 'localhost' || 
+                            window.location.hostname.includes('googleusercontent');
+            if (isPreview) {
+                e.preventDefault();
+                alert("מצב תצוגה מקדימה: המעבר ללובי חסום כדי למנוע שגיאה. באתר האמיתי זה יעבוד.");
+            }
+        }
+
+        // בדיקת כניסה וניתוק אוטומטי
+        try {
+            if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
+                const isPreview = window.location.protocol === 'blob:' || window.location.hostname.includes('googleusercontent');
+                if (isPreview) {
+                    sessionStorage.setItem(SESSION_KEY, 'true');
+                } else {
+                    safeRedirect(LOGIN_PAGE);
+                }
+            }
+        } catch (e) { console.error(e); }
+
         let inactivityTimer;
         function resetTimer() {
             clearTimeout(inactivityTimer);
             inactivityTimer = setTimeout(() => {
-                sessionStorage.removeItem(SESSION_KEY);
-                window.location.replace(LOGIN_PAGE);
+                try {
+                    sessionStorage.removeItem(SESSION_KEY);
+                    safeRedirect(LOGIN_PAGE);
+                } catch (e) {}
             }, TIMEOUT_MINUTES * 60 * 1000);
         }
+        ['load', 'mousemove', 'keypress', 'click', 'touchstart'].forEach(ev => 
+            window.addEventListener(ev, resetTimer)
+        );
 
-        window.addEventListener('load', resetTimer);
-        document.addEventListener('mousemove', resetTimer);
-        document.addEventListener('keypress', resetTimer);
-        document.addEventListener('click', resetTimer);
-        document.addEventListener('touchstart', resetTimer);
-
-        // 3. חסימת F12
+        // חסימת מקשים
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.addEventListener('keydown', event => {
-            if (event.key === 'F12' ||
-                (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'J' || event.key === 'C')) ||
-                (event.ctrlKey && event.key === 'u')) {
+            if (event.key === 'F12' || (event.ctrlKey && (event.key === 'u' || event.key === 'I'))) {
                 event.preventDefault();
             }
         });
@@ -46,8 +76,6 @@
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <!-- Tailwind CSS -->
@@ -59,7 +87,7 @@
     <style>
         body {
             font-family: 'Rubik', sans-serif;
-            background-color: #fdf4ff;
+            background-color: #fdf4ff; /* Purple-50 base */
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -74,34 +102,15 @@
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #fdf4ff;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #e879f9;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #d946ef;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #fdf4ff; }
+        ::-webkit-scrollbar-thumb { background: #e879f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d946ef; }
     </style>
 </head>
 
@@ -569,13 +578,13 @@
             <div className="max-w-4xl mx-auto px-4 py-12 text-center fade-in relative">
                 {/* כפתור חזרה ללובי */}
                 <div className="absolute top-0 left-4 hidden md:block">
-                    <a href="../index.html" className="flex items-center gap-2 text-gray-500 hover:text-purple-600 font-bold bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
+                    <a href="../index8.html" onClick={handleLobbyClick} className="flex items-center gap-2 text-gray-500 hover:text-purple-600 font-bold bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-200 transition-all hover:shadow-md">
                         <Icons.Home /> חזרה ללובי כיתה ח'
                     </a>
                 </div>
                 {/* כפתור לנייד */}
                 <div className="md:hidden flex justify-end mb-4">
-                    <a href="../index.html" className="p-2 bg-white rounded-full shadow text-gray-500"><Icons.Home /></a>
+                    <a href="../index8.html" onClick={handleLobbyClick} className="p-2 bg-white rounded-full shadow text-gray-500"><Icons.Home /></a>
                 </div>
 
                 <h1 className="text-4xl md:text-6xl font-black text-purple-900 mb-4 tracking-tight">מערכת משוואות</h1>
